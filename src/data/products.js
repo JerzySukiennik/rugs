@@ -14,7 +14,7 @@ export const PRODUCTS = {
   },
   bubblon: {
     brand: 'BUBBLON', name: 'Lemon Dish Soap', container: 'jug', form: 'gel', color: '#f2d33c',
-    capacity: 1, rate: 0.07, agents: { surf: 1.3, alk: 0.15, scent: 0.3 }, foaminess: 2.2, price: 4,
+    capacity: 1, rate: 0.07, agents: { surf: 1.3, alk: 0.03, scent: 0.3 }, foaminess: 2.2, price: 4,
     blurb: 'Household dish soap. Makes a LOT of foam.',
   },
   degrex: {

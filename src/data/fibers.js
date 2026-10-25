@@ -1,17 +1,17 @@
 // Rug Rush fiber rules per rug type: tolerances that drive damage, drying speed and the printed care label.
 export const FIBERS = {
   loop: {
-    fiber: '100% POLYPROPYLENE', waterTol: 1, alkTol: 3, oxTol: 2.5, enzTol: 1, chlorTol: 0.95, solvTol: 12, bleedSolv: 0, acidTol: 1,
+    fiber: '100% POLYPROPYLENE', waterTol: 1, alkTol: 8, oxTol: 8, enzTol: 1, chlorTol: 8, solvTol: 12, bleedSolv: 0, acidTol: 1,
     ironMax: 1, beater: true, stiff: true, rake: true, rubber: true, bleedAlk: 0, bleedWet: 0, browning: 0, felting: 0, waterMarks: 0, dryRate: 1.25,
     care: { wash: { temp: 60 }, bleach: 'any', iron: 1, dry: 'P', notes: ['OLEFIN LOOP PILE', 'IRON WITH CLOTH ONLY'] },
   },
   cut: {
-    fiber: '100% POLYESTER', waterTol: 1, alkTol: 2, oxTol: 2.5, enzTol: 1, chlorTol: 0.35, solvTol: 12, bleedSolv: 0.05, acidTol: 1,
+    fiber: '100% POLYESTER', waterTol: 1, alkTol: 8, oxTol: 8, enzTol: 1, chlorTol: 0.35, solvTol: 12, bleedSolv: 0.05, acidTol: 1,
     ironMax: 2, beater: true, stiff: true, rake: true, rubber: true, bleedAlk: 0.15, bleedWet: 0, browning: 0, felting: 0, waterMarks: 0, dryRate: 1,
     care: { wash: { temp: 40 }, bleach: 'nonChlorine', iron: 2, dry: 'P', notes: ['CUT PILE', 'NO CHLORINE'] },
   },
   shag: {
-    fiber: '100% POLYESTER MICROFIBRE', waterTol: 1, alkTol: 2, oxTol: 2.5, enzTol: 1, chlorTol: 0.35, solvTol: 12, bleedSolv: 0.05, acidTol: 1,
+    fiber: '100% POLYESTER MICROFIBRE', waterTol: 1, alkTol: 8, oxTol: 8, enzTol: 1, chlorTol: 0.35, solvTol: 12, bleedSolv: 0.05, acidTol: 1,
     ironMax: 2, beater: false, stiff: false, rake: true, rubber: true, bleedAlk: 0.1, bleedWet: 0, browning: 0, felting: 0, waterMarks: 0, dryRate: 0.55,
     care: { wash: { temp: 30, bars: 1 }, bleach: 'nonChlorine', iron: 2, dry: 'P', notes: ['SHAG 45 MM', 'NO BEATER BAR', 'HAND BRUSH ONLY'] },
   },
