@@ -117,6 +117,28 @@ for (let i = 0; i < 6; i++) {
 T('bottle flight host [x,y,z,speed,dynamic] vs c1', flight);
 flushAll(host, c1);
 
+T('4b. c1 sprints into a rolled rug, trips locally, host sees the ragdoll');
+const tripRug = await host.ev(() => window.RR.debug.rugRolled('loop', 'M', -6, 1, 0).id);
+await sleep(2000);
+const tr = await c1.ev((id) => window.RR.entities.get(id).body.translation(), tripRug);
+await goTo(c1, tr.x, tr.z + 4, tr.x, 0.3, tr.z);
+await c1.ev(() => { window.RR.debug.key('ShiftLeft', true); window.RR.debug.key('KeyW', true); });
+let tripped = null;
+for (let i = 0; i < 30 && !tripped; i++) {
+  await sleep(100);
+  const st = await host.ev(() => { const e = [...window.RR.net.session.peers.values()][0]; return e.player.ragdolled ? e.player.parts?.length : null; });
+  if (st) tripped = { afterMs: i * 100, parts: st, c1: await c1.ev(() => window.RR.player.ragdolled) };
+}
+await c1.ev(() => { window.RR.debug.key('ShiftLeft', false); window.RR.debug.key('KeyW', false); });
+T('trip seen on host', tripped);
+await goTo(host, tr.x + 2.5, tr.z + 2.5, tr.x, 0.3, tr.z + 1);
+await sleep(200);
+await shot(host, '04b-host-sees-c1-ragdoll.png');
+await sleep(4500);
+T('c1 back up', await c1.ev(() => !window.RR.player.ragdolled), await host.ev(() => ![...window.RR.net.session.peers.values()][0].player.ragdolled));
+await host.ev((id) => window.RR.removeCarpet(window.RR.entities.get(id)), tripRug);
+await sleep(500);
+
 T('5. rug: host spawns a rolled rug, c1 unrolls it with R');
 const rugId = await host.ev(() => window.RR.debug.rugRolled('cut', 'M', 0, -3.5, Math.PI / 2).id);
 await sleep(1500);
@@ -305,6 +327,10 @@ const fullState = {
   }),
 };
 T('full state after rejoin host vs c2', fullState);
+const hostBytes = await host.ev(() => window.RR.carpets.list.map((c) => { const sh = window.RR.net.session.shadows.get(c); return Object.fromEntries(Object.entries(sh.data).map(([k, a]) => [k, Array.from(a.filter((_, i) => i % 7 === 0))])); }));
+const c2Bytes = await c2.ev(() => window.RR.carpets.list.map((c) => Object.fromEntries(Object.entries(c.surface.data).map(([k, a]) => [k, Array.from(a.filter((_, i) => i % 7 === 0))]))));
+const diffs = hostBytes.map((h, r) => { let mx = 0, n = 0; for (const k of Object.keys(h)) for (let i = 0; i < h[k].length; i++) { const d = Math.abs(h[k][i] - c2Bytes[r][k][i]); if (d > mx) mx = d; if (d) n++; } return { maxByteDiff: mx, cellsDiffering: n }; });
+T('surface bytes host shadow vs c2 (every 7th byte)', diffs);
 await goTo(c2, mid.x + 1.8, mid.z + 1.2, mid.x, mid.y, mid.z);
 await sleep(800);
 await shot(c2, '12-c2-after-rejoin-sees-foam-rug.png');

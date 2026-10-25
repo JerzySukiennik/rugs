@@ -9,6 +9,7 @@ import { applySurfaceMessage, surfaceHash, MSG_SURF, MSG_SURF_FULL } from './sur
 import { decodeState, encodePose, MSG_STATE } from './state.js';
 import { applyTruck, applyRoller, applyForklift, forkliftSeat } from './mirror.js';
 import { RAGDOLL_PARTS } from '../player/ragdoll.js';
+import { LAYOUT } from '../world/layout.js';
 import { slerpArr } from './codec.js';
 import { GROUP, groups } from '../core/physics.js';
 
@@ -207,6 +208,8 @@ export class ClientSession {
       return f;
     };
     this.makeAllKinematic();
+    const sp = LAYOUT.spawn;
+    g.player.teleport(new THREE.Vector3(sp.x + [0, 1.2, -1.2, 2.4][this.slot % 4], 0, sp.z + 0.8), g.player.yaw);
     g.engine.add(this.apply, -46);
     g.engine.add(this.late, -19);
     g.engine.add(this.send, 60);

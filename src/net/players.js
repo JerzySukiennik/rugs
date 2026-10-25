@@ -164,7 +164,7 @@ export class NetPlayer {
     this.avatar = null;
     this.disposed = false;
     if (physical) {
-      this.groupsSelf = groups(GROUP.PLAYER, GROUP.ALL & ~GROUP.HELD & ~GROUP.TRIGGER);
+      this.groupsSelf = groups(GROUP.PLAYER, GROUP.ALL & ~GROUP.HELD & ~GROUP.TRIGGER & ~GROUP.PLAYER);
       const desc = R.ColliderDesc.capsule(HALF, RADIUS).setCollisionGroups(this.groupsSelf);
       if (controller) desc.setActiveEvents(R.ActiveEvents.CONTACT_FORCE_EVENTS).setContactForceEventThreshold(400);
       this.body = game.physics.createBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -50, 0), [desc], this);

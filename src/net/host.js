@@ -11,6 +11,7 @@ import { encodeState, decodePose, MSG_POSE } from './state.js';
 
 const MAX_CLIENTS = 3;
 const KEYFRAME_TICKS = 120;
+const CLOTH_BUDGET = 6000;
 const CODES = new Set(['KeyE', 'KeyQ', 'KeyF', 'KeyR', 'KeyG', 'Space', 'KeyC', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'M0', 'M2']);
 const _v = new THREE.Vector3();
 
@@ -125,9 +126,19 @@ export class HostSession {
   wrapForklift(f) {
     if (f.netWrapped) return;
     f.netWrapped = true;
-    const fu = f.fixedUpdate.bind(f), up = f.update.bind(f);
+    const fu = f.fixedUpdate.bind(f), up = f.update.bind(f), it = f.interact.bind(f);
     f.fixedUpdate = (dt) => this.withInput(f.driver, () => fu(dt));
     f.update = (dt, a) => this.withInput(f.driver, () => up(dt, a));
+    f.interact = (player, grab) => {
+      if (!player?.remote) return it(player, grab);
+      const g = this.game, keep = g.grab;
+      g.grab = player.grab;
+      try {
+        it(player, grab);
+      } finally {
+        g.grab = keep;
+      }
+    };
   }
 
   withInput(driver, fn) {
@@ -574,11 +585,17 @@ export class HostSession {
   }
 
   sendCloth(now) {
-    for (const c of this.game.carpets?.list ?? []) {
+    const list = [...(this.game.carpets?.list ?? [])];
+    list.sort((a, b) => (this.clothState.get(a)?.at ?? 0) - (this.clothState.get(b)?.at ?? 0));
+    let budget = CLOTH_BUDGET;
+    for (const c of list) {
       const st = this.clothState.get(c) ?? { moving: false, at: 0, len: c.rolledLen };
       const moving = !c.asleep || c.forceRender > 0 || Math.abs(st.len - c.rolledLen) > 1e-6;
       if (moving) {
-        this.broadcastState(encodeCloth(c, now));
+        if (budget <= 0 && now - st.at < 400) continue;
+        const buf = encodeCloth(c, now);
+        budget -= buf.byteLength;
+        this.broadcastState(buf);
         st.moving = true;
         st.at = now;
       } else if (st.moving || now - st.at > 10000) {
