@@ -154,3 +154,15 @@ Online co-op for 1-4 players, host-authoritative, WebRTC star (host ↔ each cli
 - Water: the GPU floor sim is never serialized. Inputs that do not come from particles (runoff, drips, wet-vac,
   vacuum tank dumps, squeegee blades) are replayed on clients; streams (bottles) are mirrored as emitters; the
   hose stream is driven by the replicated `flowing` flag. Client particles never deposit chemistry.
+- Lobby UI API (`game.net`, also `window.RR.net`): `listRooms(cb) → unsubscribe` (cb gets
+  `[{ id, name, hostName, players, max, version, compatible, full, age }]` on every change and every 2 s),
+  `await host({ name, look })` (room name defaults to "<look.name>'s warehouse"), `await join(roomId, { look })`
+  (resolves after the full world snapshot is applied, throws an `Error` with a readable message), `leave()`,
+  `isHost`, `isClient`, `mode`, `connected`, `roomId`, `slot`, `peers` (`[{ id, slot, name, look, ping }]`),
+  `look` / `setLook(look)` (persists `rugrush.look`), `on(evt, fn) → off` for `peer-join`, `peer-leave`,
+  `host-left`, `left`, `error`, `snapshot`, and `report()` (rates, rtt, host cost). A client world cannot turn back
+  into a solo world: after `host-left` or `leave()` as a client, reload the page.
+- Avatars: `src/net/avatarAdapter.js` loads `src/player/avatar.js` (`new Avatar(look)`, `object3d`,
+  `setPose({ pos, yaw, pitch, crouch, speed, holding, ragdollParts })`, `dispose()`); `pos` is the feet position,
+  `holding` is `{ kind: 'item' | 'heavy' | 'cloth', id } | null`, `ragdollParts` is `null` or
+  `[{ name, pos, quat }]` in `RAGDOLL_PARTS` order. Without that file it uses a coloured capsule with a name tag.

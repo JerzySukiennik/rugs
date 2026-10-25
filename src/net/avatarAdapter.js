@@ -157,7 +157,8 @@ export class FallbackAvatar {
       }
     }
     this.object3d.position.copy(pos);
-    this.tag.position.y = rag ? 0.9 : 2.05 - crouch * 0.5;
+    if (rag && ragdollParts[0]) this.tag.position.copy(ragdollParts[0].pos).sub(pos).setY(ragdollParts[0].pos.y - pos.y + 0.7);
+    else this.tag.position.set(0, 2.05 - crouch * 0.5, 0);
     if (rag) return;
     this.body.rotation.y = yaw;
     this.body.scale.y = 1 - crouch * 0.3;
