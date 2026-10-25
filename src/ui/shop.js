@@ -128,6 +128,7 @@ export class Shop {
   }
 
   buy(it) {
+    if (this.game.net?.isClient) return this.game.net.order(it.kind, it.id);
     const eco = this.game.economy;
     if (!eco.spend(it.price, `Bought ${it.name}`)) return this.game.hud?.toast('Not enough money.', true);
     eco.schedule(it.kind, it.id);

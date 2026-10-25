@@ -28,7 +28,7 @@ function colliderFor(shape, mass) {
 }
 
 export function aimDir(game, p, origin, speed, out = new THREE.Vector3()) {
-  const aim = game.grab?.aim;
+  const aim = (p.grab ?? game.grab)?.aim;
   const target = aim && aim.distance < 7 ? aim.point : _z.copy(p.eye).addScaledVector(p.forward, 4);
   out.copy(target).sub(origin);
   const d = out.length();
@@ -63,13 +63,15 @@ export class Item {
     game.entities?.add(this);
   }
 
-  onGrab() {
+  onGrab(p) {
     this.held = true;
+    this.holder = p ?? null;
   }
 
   onRelease() {
     this.held = false;
     this.using = false;
+    this.holder = null;
   }
 
   worldOf(obj, out = new THREE.Vector3()) {
@@ -185,21 +187,26 @@ export class Container extends Item {
     return true;
   }
 
+  get flowing() {
+    return this.fill > 0 && (this.mode === 'spray' || this.tilt > 0.55);
+  }
+
+  flowDir(p, origin, out) {
+    if (this.mode === 'spray') return aimDir(this.game, p, origin, STREAM[this.product.form].speed, out);
+    this.nozzle.updateWorldMatrix(true, false);
+    out.set(0, 1, 0).transformDirection(this.mesh.matrixWorld).multiplyScalar(-0.1).add(_x.copy(p.forward).multiplyScalar(0.6));
+    out.y = Math.min(out.y, -0.25);
+    return out.normalize();
+  }
+
   useHold(p, dt) {
     this.t += dt;
     const s = this.ensureStream();
-    const flowing = this.fill > 0 && (this.mode === 'spray' || this.tilt > 0.55);
+    const flowing = this.flowing;
     if (s) s.active = flowing;
     if (!flowing) return;
     const origin = this.worldOf(this.nozzle, _w);
-    let dir;
-    if (this.mode === 'spray') dir = aimDir(this.game, p, origin, STREAM[this.product.form].speed, _v);
-    else {
-      this.nozzle.updateWorldMatrix(true, false);
-      dir = _v.set(0, 1, 0).transformDirection(this.mesh.matrixWorld).multiplyScalar(-0.1).add(_x.copy(p.forward).multiplyScalar(0.6));
-      dir.y = Math.min(dir.y, -0.25);
-      dir.normalize();
-    }
+    const dir = this.flowDir(p, origin, _v);
     if (s) s.emit(origin, dir, p.velocity);
     else this.directDeposit(origin, dir, this.product.rate * dt * (this.product.form === 'foam' ? FOAM_EXPANSION : 1));
     this.fill = Math.max(0, this.fill - this.product.rate * dt);

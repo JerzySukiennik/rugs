@@ -16,6 +16,8 @@ const PARTS = [
   { n: 'shinR', cap: [0.17, 0.055], p: [0.1, 0.22, 0], c: 'boot' },
 ];
 
+export const RAGDOLL_PARTS = PARTS;
+
 const JOINTS = [
   ['pelvis', 'torso', [0, 1.08, 0]],
   ['torso', 'head', [0, 1.55, 0]],

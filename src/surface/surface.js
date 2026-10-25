@@ -58,6 +58,7 @@ export class CarpetSurface {
     this.data = {};
     this.textures = {};
     this.dirty = new Set();
+    this.netDirty = new Set();
     for (const name of TEX_NAMES) {
       const arr = new Uint8Array(this.N * 4);
       const tex = new THREE.DataTexture(arr, this.W, this.H, THREE.RGBAFormat, THREE.UnsignedByteType);
@@ -95,7 +96,10 @@ export class CarpetSurface {
   }
 
   upload() {
-    for (const n of this.dirty) this.textures[n].needsUpdate = true;
+    for (const n of this.dirty) {
+      this.textures[n].needsUpdate = true;
+      this.netDirty.add(n);
+    }
     this.dirty.clear();
   }
 

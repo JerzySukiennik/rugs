@@ -28,6 +28,9 @@ export class Grab {
     this.rolling = null;
     this.onEvent = opts.onEvent ?? null;
     this.blocked = opts.blocked ?? null;
+    this.canInteract = opts.canInteract ?? null;
+    this.proxy = opts.proxy ?? null;
+    player.grab = this;
   }
 
   heldItem() {
@@ -84,7 +87,7 @@ export class Grab {
     const inp = this.input;
     const p = this.player;
     if (p.ragdolled) {
-      if (this.held) this.release();
+      if (this.held && !this.proxy) this.release();
       this.aim = null;
       return;
     }
@@ -94,11 +97,13 @@ export class Grab {
       return;
     }
     this.aim = this.raycastAll(p.eye, p.forward, REACH);
+    if (this.aimFix) this.aim = this.aimFix(this.aim);
     if (!inp.locked) return;
     if (inp.wheel) this.holdDist = Math.max(0.9, Math.min(2.3, this.holdDist - inp.wheel * 0.15));
+    if (this.proxy) return this.proxyUpdate();
     const item = this.heldItem();
     if (inp.pressed('KeyE')) {
-      if (this.aim?.owner?.interact && (!this.held || this.aim.owner.acceptsHeld)) this.aim.owner.interact(p, this);
+      if (this.aim?.owner?.interact && (!this.held || this.aim.owner.acceptsHeld) && this.canInteract?.(this.aim.owner) !== false) this.aim.owner.interact(p, this);
       else if (this.aim?.carpetHit?.part === 'label') this.hud?.showCareLabel?.(this.aim.owner);
       else if (this.held) this.release();
       else if (this.aim) this.tryGrab(this.aim);
@@ -128,8 +133,31 @@ export class Grab {
     this.rmb = rmb;
   }
 
+  proxyUpdate() {
+    const inp = this.input;
+    const p = this.player;
+    const a = this.aim;
+    if (inp.pressed('KeyE') && a) {
+      const o = a.owner;
+      if (o?.interact && (!this.held || o.acceptsHeld)) {
+        if (o.kind === 'computer' || o.localInteract) {
+          o.interact(p, this);
+          this.proxy.consume('KeyE');
+        }
+      } else if (a.carpetHit?.part === 'label') {
+        this.hud?.showCareLabel?.(o);
+        this.proxy.consume('KeyE');
+      }
+    }
+    const item = this.heldItem();
+    if (item) item.update?.(p, this);
+    this.lmb = inp.mouseDown[0];
+    this.rmb = inp.mouseDown[2];
+  }
+
   tryGrab(hit) {
-    const o = hit.owner;
+    const o = hit?.owner;
+    if (!o) return false;
     if (o.kind === 'carpet') {
       const h = o.grabAt?.(hit.carpetHit ?? hit);
       if (!h) return false;
@@ -203,6 +231,11 @@ export class Grab {
   release() {
     const h = this.held;
     if (!h) return;
+    if (this.proxy) {
+      this.held = null;
+      this.player.speedMul = 1;
+      return;
+    }
     if (h.kind === 'cloth') {
       h.handle.release();
       h.carpet.onRelease?.(this.player, this);
@@ -233,6 +266,10 @@ export class Grab {
   fixedUpdate(dt) {
     const h = this.held;
     const p = this.player;
+    if (this.proxy) {
+      if (h?.kind === 'item' && h.body) this.driveTool(h, dt);
+      return;
+    }
     if (this.rolling) {
       const fwd = Math.max(0, p.velocity.x * p.forward.x + p.velocity.z * p.forward.z);
       if (fwd > 0.05) this.rolling.pushRoll?.(fwd * dt);
