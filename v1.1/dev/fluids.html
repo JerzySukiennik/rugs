@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rug Rush fluids</title>
+<link rel="icon" href="data:,">
+<style>html,body{margin:0;height:100%;background:#111;overflow:hidden}#app{position:fixed;inset:0}#help{position:fixed;right:8px;top:8px;font:12px ui-monospace,monospace;color:#fff;background:rgba(0,0,0,.45);padding:5px 8px;border-radius:4px;pointer-events:none;white-space:pre;line-height:1.45}</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@dimforge/rapier3d-compat":"https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"}}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="help">H  hose on/off (held 1.2 m ahead, aims at cursor)
+Q + drag  squeegee under cursor
+1-5  water / mist / foam / powder / gel toward cursor
+P  pour 20 L dirty soapy water at cursor
+R  wet vac at cursor (hold)</div>
+<script type="module">
+import { boot } from './devkit.js';
+import { LAYOUT, floorBaseHeightAt } from '../src/world/layout.js';
+import { Fluids } from '../src/fluids/fluids.js';
+const rr = await boot({ title: 'fluids', camera: [5.2, 3.6, 6.2], target: [0, 0, -1] });
+const { THREE, engine, physics, controls } = rr;
+rr.ready = false;
+const envMode = new URLSearchParams(location.search).get('env') ?? 'warehouse';
+if (envMode !== 'room') await engine.loadEnvironment(`../assets/hdri/${envMode}.hdr`, { background: true, intensity: 0.9, blur: 0.03 });
+const fluids = new Fluids(engine, physics, {});
+engine.add(fluids, -20);
+const hose = fluids.createHose(LAYOUT.hoseBoom);
+
+const recv = { name: 'testReceiver', counts: { water: 0, mist: 0, foam: 0, powder: 0, gel: 0 }, hits: 0 };
+const rc = { x: 3.4, z: -0.4, w: 2, d: 3, h: 0.035 };
+rc.y0 = Math.min(...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => floorBaseHeightAt(rc.x + a * rc.w / 2, rc.z + b * rc.d / 2)));
+rc.top = rc.y0 + rc.h;
+const recvMesh = new THREE.Mesh(new THREE.BoxGeometry(rc.w, rc.h + 0.03, rc.d), new THREE.MeshStandardMaterial({ color: 0x6f8fb0, roughness: 0.85 }));
+recvMesh.position.set(rc.x, rc.top - (rc.h + 0.03) / 2, rc.z);
+recvMesh.castShadow = recvMesh.receiveShadow = true;
+engine.scene.add(recvMesh);
+physics.staticBox(rc.w / 2, (rc.h + 0.03) / 2, rc.d / 2, recvMesh.position, null, { owner: recv });
+const bmin = new THREE.Vector3(rc.x - rc.w / 2, rc.y0 - 0.05, rc.z - rc.d / 2);
+const bmax = new THREE.Vector3(rc.x + rc.w / 2, rc.top, rc.z + rc.d / 2);
+fluids.hitTest = (p0, p1) => {
+  let t0 = 0, t1 = 1, nAxis = -1, nSign = 0;
+  const d = [p1.x - p0.x, p1.y - p0.y, p1.z - p0.z], o = [p0.x, p0.y, p0.z], mn = [bmin.x, bmin.y, bmin.z], mx = [bmax.x, bmax.y, bmax.z];
+  for (let a = 0; a < 3; a++) {
+    if (Math.abs(d[a]) < 1e-9) {
+      if (o[a] < mn[a] || o[a] > mx[a]) return null;
+      continue;
+    }
+    let ta = (mn[a] - o[a]) / d[a], tb = (mx[a] - o[a]) / d[a], s = -1;
+    if (ta > tb) { [ta, tb] = [tb, ta]; s = 1; }
+    if (ta > t0) { t0 = ta; nAxis = a; nSign = s; }
+    if (tb < t1) t1 = tb;
+    if (t0 > t1) return null;
+  }
+  if (nAxis < 0) return null;
+  const n = new THREE.Vector3();
+  n.setComponent(nAxis, nSign);
+  return { point: new THREE.Vector3(o[0] + d[0] * t0, o[1] + d[1] * t0, o[2] + d[2] * t0), normal: n, receiver: recv };
+};
+fluids.onDeposit = (h) => {
+  if (h.receiver === recv) {
+    recv.counts[h.kind] += h.amount;
+    recv.hits++;
+  }
+};
+
+fluids.addWater(-1.6, 0.6, 22, { radius: 0.55 });
+fluids.addWater(-3.4, -6.4, 12, { dirt: 0.75, soap: 0.35, radius: 0.45 });
+fluids.addFoam(-3.2, -6.2, 6, 0.4);
+for (let i = 0; i < 420; i++) engine.fixedStep();
+
+const blade = new THREE.Group();
+const rubber = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.035, 0.012), new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.7 }));
+rubber.position.y = 0.0175;
+const frame = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.03, 0.03), new THREE.MeshStandardMaterial({ color: 0xd9b23a, roughness: 0.5 }));
+frame.position.y = 0.05;
+const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.3, 10), new THREE.MeshStandardMaterial({ color: 0x8a8f95, metalness: 0.6, roughness: 0.4 }));
+handle.position.set(0, 0.6, 0.38);
+handle.rotation.x = 0.62;
+for (const m of [rubber, frame, handle]) m.castShadow = true;
+blade.add(rubber, frame, handle);
+blade.visible = false;
+engine.scene.add(blade);
+
+const mouse = new THREE.Vector2(0, 0);
+const ray = new THREE.Raycaster();
+const cursor = new THREE.Vector3(0, 0, 0);
+const keys = new Set();
+let dragging = false;
+function floorHit(ndc, out) {
+  ray.setFromCamera(ndc, engine.camera);
+  const o = ray.ray.origin, d = ray.ray.direction;
+  let y = 0;
+  for (let i = 0; i < 4; i++) {
+    if (Math.abs(d.y) < 1e-4) return false;
+    const t = (y - o.y) / d.y;
+    if (t < 0) return false;
+    out.copy(o).addScaledVector(d, t);
+    y = floorBaseHeightAt(out.x, out.z);
+  }
+  out.y = y;
+  return true;
+}
+engine.canvas.addEventListener('pointermove', (e) => {
+  const r = engine.canvas.getBoundingClientRect();
+  mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+});
+engine.canvas.addEventListener('pointerdown', () => { if (keys.has('KeyQ')) { dragging = true; controls.enabled = false; } });
+addEventListener('pointerup', () => {
+  dragging = false;
+  if (!keys.has('KeyQ')) controls.enabled = true;
+});
+addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+  keys.add(e.code);
+  if (e.code === 'KeyQ') controls.enabled = false;
+  if (e.code === 'KeyH') demo.hold(!demo.holding);
+  if (e.code === 'KeyP') demo.pour(cursor.x, cursor.z);
+});
+addEventListener('keyup', (e) => {
+  keys.delete(e.code);
+  if (e.code === 'KeyQ') {
+    dragging = false;
+    controls.enabled = true;
+  }
+});
+
+const kinds = ['water', 'mist', 'foam', 'powder', 'gel'];
+const streams = {
+  water: fluids.createStream('water', { productId: 'devWater' }),
+  mist: fluids.createStream('mist', { color: '#eef6ff', productId: 'devMist' }),
+  foam: fluids.createStream('foam', { color: '#fbfdff', productId: 'devFoam' }),
+  powder: fluids.createStream('powder', { color: '#f2e6a8', productId: 'devPowder' }),
+  gel: fluids.createStream('gel', { color: '#2fa6e6', productId: 'devGel' }),
+};
+const pourStream = fluids.createStream('water', { rate: 16, pps: 420, speed: 1.4, spread: 0.32, size: 0.011, color: '#b9a888', dirt: 0.65, soap: 0.45, productId: 'devPour' });
+
+const demo = {
+  holding: false,
+  holdAt: null,
+  aim: null,
+  holdOffset: new THREE.Vector3(0, -0.25, 0),
+  sweeps: [],
+  emits: [],
+  pours: [],
+  vacs: [],
+  cursorOverride: null,
+  bladeDir: new THREE.Vector3(0, 0, -1),
+  bladePos: new THREE.Vector3(),
+  hold(on) {
+    if (on === demo.holding) return;
+    demo.holding = on;
+    if (on) { hose.lance.onGrab(null, null); hose.lance.useStart(null); }
+    else { hose.lance.useEnd(null); hose.lance.onRelease(null); }
+  },
+  setAim(x, z) { demo.aim = x === null ? null : new THREE.Vector3(x, floorBaseHeightAt(x, z), z); },
+  cam(p, t) { engine.camera.position.set(...p); controls.target.set(...t); controls.update(); },
+  sweep(from, to, dur = 2, id = 'scripted') { demo.sweeps.push({ from, to, dur, t: 0, id }); },
+  stream(kind, dur, target, origin = null) { demo.emits.push({ kind, dur, t: 0, target: new THREE.Vector3(target[0], floorBaseHeightAt(target[0], target[1]), target[1]), origin: origin ? new THREE.Vector3(...origin) : null }); },
+  pour(x, z, dur = 1.25) { demo.pours.push({ x, z, dur, t: 0 }); },
+  vac(x, z, dur = 2) { demo.vacs.push({ x, z, dur, t: 0, got: 0 }); },
+  setCursor(x, z) { demo.cursorOverride = x === null ? null : [x, z]; },
+};
+rr.demo = demo;
+
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _o = new THREE.Vector3(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _zero = new THREE.Vector3();
+function cameraOrigin(out) {
+  engine.camera.getWorldDirection(_w);
+  _v.crossVectors(_w, engine.camera.up).normalize();
+  return out.copy(engine.camera.position).addScaledVector(_w, 0.35).addScaledVector(_v, 0.18).add(_o.set(0, -0.28, 0));
+}
+function bladeAt(c, dir, id) {
+  const ax = new THREE.Vector3(-dir.z, 0, dir.x).normalize().multiplyScalar(0.3);
+  const a = { x: c.x - ax.x, y: 0, z: c.z - ax.z }, b = { x: c.x + ax.x, y: 0, z: c.z + ax.z };
+  fluids.squeegee(id, a, b);
+  blade.visible = true;
+  blade.position.set(c.x, floorBaseHeightAt(c.x, c.z), c.z);
+  blade.rotation.set(0, Math.atan2(-dir.x, -dir.z), 0);
+}
+
+engine.add({
+  fixedUpdate(dt) {
+    if (demo.cursorOverride) cursor.set(demo.cursorOverride[0], floorBaseHeightAt(demo.cursorOverride[0], demo.cursorOverride[1]), demo.cursorOverride[1]);
+    else floorHit(mouse, cursor);
+    if (demo.holding) {
+      const body = hose.body;
+      engine.camera.getWorldDirection(_w);
+      const target = demo.holdAt ? _v.set(...demo.holdAt) : _v.copy(engine.camera.position).addScaledVector(_w, 1.2).add(demo.holdOffset);
+      const t = body.translation();
+      const lv = body.linvel();
+      const des = target.sub(_o.set(t.x, t.y, t.z)).multiplyScalar(14);
+      if (des.length() > 9) des.setLength(9);
+      const dv = des.sub(_o.set(lv.x, lv.y, lv.z));
+      const maxDv = (260 / body.mass()) * dt;
+      if (dv.length() > maxDv) dv.setLength(maxDv);
+      body.setLinvel({ x: lv.x + dv.x, y: lv.y + dv.y, z: lv.z + dv.z }, true);
+      const aimP = demo.aim ?? cursor;
+      const aim = _w.copy(aimP).sub(_o.set(t.x, t.y, t.z)).normalize();
+      _m.lookAt(_zero, aim, engine.camera.up);
+      _q.setFromRotationMatrix(_m);
+      const r = body.rotation();
+      const cur = new THREE.Quaternion(r.x, r.y, r.z, r.w);
+      const dq = _q.clone().multiply(cur.invert());
+      if (dq.w < 0) { dq.x = -dq.x; dq.y = -dq.y; dq.z = -dq.z; dq.w = -dq.w; }
+      const ang = 2 * Math.acos(Math.min(1, dq.w));
+      const s = Math.sqrt(Math.max(1e-9, 1 - dq.w * dq.w));
+      const k = Math.min(ang * 12, 25);
+      body.setAngvel(ang > 1e-4 ? { x: (dq.x / s) * k, y: (dq.y / s) * k, z: (dq.z / s) * k } : { x: 0, y: 0, z: 0 }, true);
+    }
+    let bladeOn = false;
+    if (keys.has('KeyQ') && dragging) {
+      const c = cursor;
+      const mv = _w.set(c.x - demo.bladePos.x, 0, c.z - demo.bladePos.z);
+      if (mv.length() > 0.002) demo.bladeDir.lerp(mv.normalize(), 0.25).normalize();
+      demo.bladePos.copy(c);
+      bladeAt(c, demo.bladeDir, 'dev');
+      bladeOn = true;
+    } else demo.bladePos.copy(cursor);
+    for (const s of demo.sweeps) {
+      s.t += dt;
+      const f = Math.min(1, s.t / s.dur);
+      const e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+      const c = new THREE.Vector3(s.from[0] + (s.to[0] - s.from[0]) * e, 0, s.from[1] + (s.to[1] - s.from[1]) * e);
+      const dir = new THREE.Vector3(s.to[0] - s.from[0], 0, s.to[1] - s.from[1]).normalize();
+      bladeAt(c, dir, s.id);
+      bladeOn = true;
+    }
+    demo.sweeps = demo.sweeps.filter((s) => s.t < s.dur);
+    if (!bladeOn) blade.visible = false;
+    for (let i = 0; i < 5; i++) if (keys.has('Digit' + (i + 1))) {
+      const o = cameraOrigin(new THREE.Vector3());
+      streams[kinds[i]].emit(o, _w.copy(cursor).sub(o).normalize(), null);
+    }
+    for (const e of demo.emits) {
+      e.t += dt;
+      const o = e.origin ?? cameraOrigin(new THREE.Vector3());
+      streams[e.kind].emit(o, _w.copy(e.target).sub(o).normalize(), null);
+    }
+    demo.emits = demo.emits.filter((e) => e.t < e.dur);
+    for (const p of demo.pours) {
+      p.t += dt;
+      const o = new THREE.Vector3(p.x, floorBaseHeightAt(p.x, p.z) + 0.75, p.z);
+      pourStream.emit(o, _w.set(0.25, -1, 0.1).normalize(), null);
+    }
+    demo.pours = demo.pours.filter((p) => p.t < p.dur);
+    if (keys.has('KeyR')) fluids.removeWater(cursor.x, cursor.z, 0.25, 1.5 * dt);
+    for (const v of demo.vacs) { v.t += dt; v.got += fluids.removeWater(v.x, v.z, 0.25, 1.5 * dt); }
+    demo.vacsDone = (demo.vacsDone ?? 0) + demo.vacs.filter((v) => v.t >= v.dur).reduce((a, v) => a + v.got, 0);
+    demo.vacs = demo.vacs.filter((v) => v.t < v.dur);
+  },
+}, -40);
+
+rr.fluids = fluids;
+rr.hose = hose;
+rr.recv = recv;
+rr.report = () => ({
+  fps: +engine.fps.toFixed(1),
+  frameMs: +engine.frameMs.toFixed(2),
+  ...fluids.report(),
+  hose: { held: hose.held, flowing: hose.flowing, payout: +hose.payout.toFixed(2), tension: +hose.tension.toFixed(1), boomDeg: +(hose.theta * 180 / Math.PI).toFixed(1), lanceY: +hose.body.translation().y.toFixed(2) },
+  receiver: Object.fromEntries(Object.entries(recv.counts).map(([k, v]) => [k, +v.toFixed(4)])),
+});
+rr.hudExtra = () => {
+  const r = fluids.report();
+  const c = recv.counts;
+  return `fluids ${r.cpuMsPerStep.toFixed(2)} ms/step  gpu passes ${r.gpuSimPassesPerStep}  particles ${r.particles}  floor ${r.totalLiters.toFixed(1)} L\n` +
+    `receiver  water ${c.water.toFixed(2)} L  mist ${c.mist.toFixed(3)} L  foam ${c.foam.toFixed(2)} u  powder ${(c.powder * 1000).toFixed(0)} g  gel ${c.gel.toFixed(3)} L\n` +
+    `hose ${hose.flowing ? 'ON' : 'off'}  payout ${hose.payout.toFixed(2)} m  tension ${hose.tension.toFixed(0)} N  boom ${(hose.theta * 180 / Math.PI).toFixed(0)} deg`;
+};
+rr.ready = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rug Rush shag tile</title>
+<style>html,body{margin:0;background:#202020}canvas{display:block;image-rendering:pixelated}</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}
+</script>
+</head>
+<body>
+<script type="module">
+import { shagTile } from '../src/carpet/detail.js';
+const t0 = performance.now();
+const tex = shagTile();
+const ms = performance.now() - t0;
+const { data, width, height } = tex.image;
+const ch = +(new URLSearchParams(location.search).get('ch') ?? 0);
+const c = document.createElement('canvas');
+c.width = width; c.height = height;
+const g = c.getContext('2d');
+const img = g.createImageData(width, height);
+for (let i = 0; i < width * height; i++) {
+  const v = data[i * 4 + ch];
+  const shade = ch === 0 ? v * data[i * 4 + 3] / 255 : v;
+  img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = shade;
+  img.data[i * 4 + 3] = 255;
+}
+g.putImageData(img, 0, 0);
+document.body.appendChild(c);
+window.RR = { ready: true, report: () => ({ bakeMs: +ms.toFixed(1) }) };
+</script>
+</body>
+</html>

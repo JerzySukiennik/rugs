@@ -51,7 +51,7 @@ export class Menu {
     const save = g.save?.peek?.();
     if (save) col.append(el('div', { class: 'rr-sticker', style: 'transform:rotate(1.5deg);margin-top:6px' }, `Day ${save.day} · $${Math.round(save.money)} in the bank`));
     scr.append(col);
-    scr.append(el('div', { style: 'position:fixed;bottom:14px;left:16px;color:#fff;font-weight:600;text-shadow:0 2px 0 var(--ink);opacity:.85' }, 'Gzowo Labs · v2'));
+    scr.append(el('div', { style: 'position:fixed;bottom:14px;left:16px;color:#fff;font-weight:600;text-shadow:0 2px 0 var(--ink);opacity:.85' }, 'Gzowo Labs · v1.1'));
     this.mount(scr);
   }
 

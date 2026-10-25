@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rug Rush carpet patterns</title>
+<style>html,body{margin:0;height:100%;background:#202020;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@dimforge/rapier3d-compat":"https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"}}
+</script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { PatternBaker, patternSpec } from '../src/carpet/patterns.js';
+const params = new URLSearchParams(location.search);
+const seedBase = +(params.get('seed') ?? 1);
+const zoom = params.get('zoom');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const cam = new THREE.OrthographicCamera(0, 16, 9, 0, -1, 1);
+const baker = new PatternBaker(renderer);
+const list = (params.get('types') ?? 'persian,silk,kilim,modern,tweed,sisal,solid').split(',');
+const dims = { persian: [2, 3], silk: [1.2, 1.8], kilim: [1.6, 2.4], modern: [2, 3], tweed: [2, 3], sisal: [2, 3], solid: [1.2, 1.8] };
+let x = 0.2;
+const t0 = performance.now();
+for (const [i, type] of list.entries()) {
+  const [w, l] = dims[type];
+  const spec = patternSpec(type, w, l, seedBase + i * 3);
+  const rt = baker.bake(spec);
+  const tex = rt.texture;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const h = 8.4, ww = h * w / l;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(ww, h), new THREE.MeshBasicMaterial({ map: tex }));
+  m.position.set(x + ww / 2, 4.5, 0);
+  scene.add(m);
+  x += ww + 0.2;
+}
+const bakeMs = performance.now() - t0;
+if (zoom) {
+  const [zx, zy, zs] = zoom.split(',').map(Number);
+  cam.left = zx; cam.right = zx + zs * innerWidth / innerHeight; cam.bottom = zy; cam.top = zy + zs;
+} else {
+  const wv = Math.max(16, x), hv = wv * innerHeight / innerWidth;
+  cam.left = 0; cam.right = wv; cam.bottom = 4.5 - hv / 2; cam.top = 4.5 + hv / 2;
+}
+cam.updateProjectionMatrix();
+renderer.render(scene, cam);
+window.RR = { ready: true, report: () => ({ bakeMs: +bakeMs.toFixed(1) }) };
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+# Rug Rush SFX credits
+
+Every recording is a Freesound sound under CC0 1.0 (public domain dedication). Licence re-checked on each sound page before download; no attribution is required, listed here for the record.
+All files: mono, 44.1 kHz, mp3 96 kbps, silence trimmed, peaks normalised to about -1 dBFS (sliced from the Freesound HQ preview). Loops are crossfaded at the seam.
+
+- `aerosol_loop.mp3`: "Spray" by Soundkrampf (Freesound, CC0 1.0, loop 3.0s from 0.75s, 0.8s crossfade) https://freesound.org/s/414025/
+- `blower_loop.mp3`: "HVAC Blower Fan" by TheTechTinkerer (Freesound, CC0 1.0, loop 6.0s from 1.50s, 1.0s crossfade) https://freesound.org/s/799531/
+- `body_fall_1.mp3`: "BODY FALL - V HVY - DIRT" by leonelmail (Freesound, CC0 1.0, cut 0.0-1.7s) https://freesound.org/s/504626/
+- `body_fall_2.mp3`: "Falling body hits the floor" by courtneyeck (Freesound, CC0 1.0, cut 0.0-2.1s) https://freesound.org/s/673424/
+- `bottle_drop_1.mp3`: "Plastic Bottle Drop" by JonasTisell (Freesound, CC0 1.0, cut 0.0-2.4s) https://freesound.org/s/442261/
+- `bottle_drop_2.mp3`: "OBJBtl-INT_Plastic Bottle Falling _Khensani_OwSFX" by Khensi (Freesound, CC0 1.0, cut 0.0-3.0s) https://freesound.org/s/708647/
+- `bottle_drop_3.mp3`: "dropping a bottle" by ccovi (Freesound, CC0 1.0, cut 0.0-3.0s) https://freesound.org/s/587295/
+- `brush_scrub_1.mp3`: "R18-36-Scrub with Stiff Brush.wav" by craigsmith (Freesound, CC0 1.0, cut 4.0-7.0s) https://freesound.org/s/481864/
+- `brush_scrub_2.mp3`: "R18-36-Scrub with Stiff Brush.wav" by craigsmith (Freesound, CC0 1.0, cut 15.0-18.0s) https://freesound.org/s/481864/
+- `brush_scrub_3.mp3`: "scrubbing the floor.wav" by juanpabloagredo (Freesound, CC0 1.0, cut 0.0-4.8s) https://freesound.org/s/559696/
+- `brush_soft.mp3`: "Brushing the carpet.wav" by 15GPanskaMottel_Patrik (Freesound, CC0 1.0, cut 3.0-8.0s) https://freesound.org/s/461899/
+- `button_press.mp3`: "Industrial Switch With Spring" by cookies+policy (Freesound, CC0 1.0, cut 0.0-3.0s) https://freesound.org/s/556635/
+- `cardboard_drop.mp3`: "Cardboard Box Drop.wav" by VSokorelos (Freesound, CC0 1.0, cut 0.0-3.0s) https://freesound.org/s/346169/
+- `cash_register.mp3`: "Cash Register Purchase" by Zott820 (Freesound, CC0 1.0, cut 0.0-2.8s) https://freesound.org/s/209578/
+- `cloth_flap.mp3`: "Cloth flaps" by Maraboop (Freesound, CC0 1.0, cut 0.0-4.0s) https://freesound.org/s/844390/
+- `drain_loop.mp3`: "Water Running in underground drain Loop" by invertedturtle (Freesound, CC0 1.0, loop 6.0s from 40.05s, 2.0s crossfade) https://freesound.org/s/584589/
+- `drip_1.mp3`: "faucet_drip 01.wav" by ShadowSilhouette (Freesound, CC0 1.0, cut 3.6-4.5s) https://freesound.org/s/489747/
+- `drip_2.mp3`: "Dripping_faucet.wav" by lmr9 (Freesound, CC0 1.0, cut 1.3-2.1s) https://freesound.org/s/265360/
+- `drip_3.mp3`: "water dripping in faucet 1.wav" by bushi3593 (Freesound, CC0 1.0, cut 0.0-3.0s) https://freesound.org/s/219373/
+- `dryer_loop.mp3`: "Industrial fan 3" by pushkin (Freesound, CC0 1.0, loop 6.0s from 5.25s, 1.5s crossfade) https://freesound.org/s/319415/
+- `foam_spray_loop.mp3`: "G39-11-Fire Hose Spray Foam.wav" by craigsmith (Freesound, CC0 1.0, loop 4.0s from 21.70s, 1.0s crossfade) https://freesound.org/s/438628/
+- `footstep_carpet_1.mp3`: "01-24 Footsteps, Rug, Slippers, Slow Pace.wav" by SpliceSound (Freesound, CC0 1.0, event 5 of auto-detected hits) https://freesound.org/s/260116/
+- `footstep_carpet_2.mp3`: "01-24 Footsteps, Rug, Slippers, Slow Pace.wav" by SpliceSound (Freesound, CC0 1.0, event 7 of auto-detected hits) https://freesound.org/s/260116/
+- `footstep_carpet_3.mp3`: "Rug Footsteps in large room" by just4projects (Freesound, CC0 1.0, event 4 of auto-detected hits) https://freesound.org/s/553910/
+- `footstep_tile_1.mp3`: "Footsteps_Mountain_Boots_Tile_Mono.wav" by Nox_Sound (Freesound, CC0 1.0, event 5 of auto-detected hits) https://freesound.org/s/555868/
+- `footstep_tile_2.mp3`: "01-14 Footsteps, Tile, Male Barefoot, Scuffs.wav" by SpliceSound (Freesound, CC0 1.0, event 6 of auto-detected hits) https://freesound.org/s/197404/
+- `footstep_tile_3.mp3`: "Footsteps, Tile, Male Sneakers, Slow Pace.wav" by SpliceSound (Freesound, CC0 1.0, event 4 of auto-detected hits) https://freesound.org/s/170506/
+- `footstep_tile_4.mp3`: "01-19 Footsteps, Tile, Female Heels, Scuffs.wav" by SpliceSound (Freesound, CC0 1.0, event 6 of auto-detected hits) https://freesound.org/s/218295/
+- `footstep_wet_1.mp3`: "puddle footsteps.wav" by patchytherat (Freesound, CC0 1.0, event 1 of auto-detected hits) https://freesound.org/s/531566/
+- `footstep_wet_2.mp3`: "Walking in Puddles" by pascalcolors (Freesound, CC0 1.0, event 3 of auto-detected hits) https://freesound.org/s/787465/
+- `footstep_wet_3.mp3`: "Walking through puddle" by NachtmahrTV (Freesound, CC0 1.0, event 5 of auto-detected hits) https://freesound.org/s/553238/
+- `forklift_engine_loop.mp3`: "forklift.wav" by soundman9826 (Freesound, CC0 1.0, loop 6.0s from 4.95s, 1.5s crossfade) https://freesound.org/s/571002/
+- `forklift_hydraulic.mp3`: "Industrial forklift hydraulics" by peridactyloptrix (Freesound, CC0 1.0, cut 2.0-6.0s) https://freesound.org/s/221925/
+- `glug_1.mp3`: "bottle-glugs.wav" by isbeorn (Freesound, CC0 1.0, cut 0.0-2.6s) https://freesound.org/s/553954/
+- `glug_2.mp3`: "glug_glug_glug.wav" by noisymichael (Freesound, CC0 1.0, event 2 of auto-detected hits) https://freesound.org/s/661609/
+- `hose_loop.mp3`: "Garden Hose in Jet Mode - Cleaning Metal Pet Bowl" by christos71 (Freesound, CC0 1.0, loop 5.0s from 20.30s, 1.5s crossfade) https://freesound.org/s/807731/
+- `iron_hiss.mp3`: "Steam.wav" by sniperous (Freesound, CC0 1.0, cut 0.0-7.8s) https://freesound.org/s/365071/
+- `label_printer.mp3`: "Label Printer - Printing a Label" by Philip_Berger (Freesound, CC0 1.0, cut 0.0-5.0s) https://freesound.org/s/546605/
+- `metal_clank_1.mp3`: "FX METAL CLANKING ON CONCRETE 501.wav" by metrostock99 (Freesound, CC0 1.0, cut 0.0-3.4s) https://freesound.org/s/345080/
+- `metal_clank_2.mp3`: "Metal Canister Impact Hard" by h2p34 (Freesound, CC0 1.0, cut 0.0-1.4s) https://freesound.org/s/650573/
+- `pour_loop.mp3`: "Pouring Water into a Glass Bowl.wav" by The_Runner_01 (Freesound, CC0 1.0, loop 4.0s from 9.50s, 1.0s crossfade) https://freesound.org/s/554444/
+- `powder_shake_loop.mp3`: "Salt Shaker;Shaken.wav" by dster777 (Freesound, CC0 1.0, loop 3.0s from 1.50s, 0.5s crossfade) https://freesound.org/s/344553/
+- `ramp_clank.mp3`: "delivery truck metal ramp unhook take out slam ground put back steps walk on.flac" by kyles (Freesound, CC0 1.0, event 6 of auto-detected hits) https://freesound.org/s/455738/
+- `roller_door.mp3`: "Automatic Garage Roller Door Opening.wav" by freesoundjon01 (Freesound, CC0 1.0, cut 0.0-16.7s) https://freesound.org/s/202666/
+- `roller_motor_loop.mp3`: "Industrial Conveyor Belt" by Kinoton (Freesound, CC0 1.0, loop 5.0s from 8.20s, 1.5s crossfade) https://freesound.org/s/519027/
+- `rug_drag_loop.mp3`: "Griptape dragged across carpet" by takeabeat (Freesound, CC0 1.0, loop 6.0s from 1.00s, 0.5s crossfade) https://freesound.org/s/464121/
+- `rug_thud_1.mp3`: "Wet Towel Floor Impact Punch Drop Bag Cloth" by qubodup (Freesound, CC0 1.0, event 3 of auto-detected hits) https://freesound.org/s/74488/
+- `rug_thud_2.mp3`: "Dropping" by takeabeat (Freesound, CC0 1.0, event 1 of auto-detected hits) https://freesound.org/s/464118/
+- `rug_unroll.mp3`: "R24-18-Tent or Tarp Whoosh.wav" by craigsmith (Freesound, CC0 1.0, event 2 of auto-detected hits) https://freesound.org/s/481896/
+- `scrape_1.mp3`: "Fingernails_on_side_of_matterss_3x_then_3x_different_direction" by AlienXXX (Freesound, CC0 1.0, cut 0.0-4.0s) https://freesound.org/s/808593/
+- `scrape_2.mp3`: "paper scraping across something" by sethbarber (Freesound, CC0 1.0, cut 0.0-2.6s) https://freesound.org/s/727348/
+- `slurp.mp3`: "Cup Slurp 2.wav" by lighteningjimmy88 (Freesound, CC0 1.0, cut 0.5-3.0s) https://freesound.org/s/485379/
+- `spray_1.mp3`: "trigger spray cleaner.wav" by Kiyoshiakira (Freesound, CC0 1.0, cut 0.0-1.3s) https://freesound.org/s/436779/
+- `spray_2.mp3`: "Spray Bottle.wav" by blwuens (Freesound, CC0 1.0, cut 0.0-6.9s) https://freesound.org/s/515160/
+- `spray_3.mp3`: "Spray bottle.wav" by gabytoledosci (Freesound, CC0 1.0, cut 0.0-6.0s) https://freesound.org/s/398335/
+- `squeegee_1.mp3`: "Squeegee3.wav" by 16H_Panska_Vancura_Daniel (Freesound, CC0 1.0, cut 17.5-22.5s) https://freesound.org/s/498424/
+- `squeegee_2.mp3`: "Squeegee on glass.wav" by OleSouWester (Freesound, CC0 1.0, cut 5.5-8.5s) https://freesound.org/s/457067/
+- `stretch_film_loop.mp3`: "plastic wrap 2 lively crunch texture.wav" by KrystianPawlowski (Freesound, CC0 1.0, loop 6.0s from 5.10s, 1.0s crossfade) https://freesound.org/s/584909/
+- `trash_drop.mp3`: "Metal Hollow Bin Box Shut Drop Move.WAV" by Breezy2000uk (Freesound, CC0 1.0, cut 8.0-9.6s) https://freesound.org/s/608371/
+- `truck_air_brake.mp3`: "air_brakes_loud_fade_out.wav" by rabbydaw (Freesound, CC0 1.0, cut 0.0-5.5s) https://freesound.org/s/504865/
+- `truck_door_close.mp3`: "Van_Door_Slam_Closed.wav" by mickyman5000 (Freesound, CC0 1.0, cut 0.0-1.9s) https://freesound.org/s/340509/
+- `truck_door_open.mp3`: "Truck Door Open and Close" by Jofae (Freesound, CC0 1.0, cut 0.0-1.5s) https://freesound.org/s/361823/
+- `truck_engine_loop.mp3`: "engine_idle_loop.wav" by ReadeOnly (Freesound, CC0 1.0, loop 4.0s from 0.00s, 1.0s crossfade) https://freesound.org/s/186935/
+- `truck_reverse_beep.mp3`: "oulander reversing beep isolated.wav" by martian (Freesound, CC0 1.0, cut 0.0-1.2s) https://freesound.org/s/523672/
+- `uv_click.mp3`: "Small_Flashlight_Click_on_Fast.wav" by Rudmer_Rotteveel (Freesound, CC0 1.0, cut 0.0-0.3s) https://freesound.org/s/502506/
+- `vacuum_loop.mp3`: "Vacuum Cleaner switch on, run, switch off 2.aif" by DJ Burnham (Freesound, CC0 1.0, loop 6.0s from 8.10s, 1.5s crossfade) https://freesound.org/s/141682/
+- `vacuum_start.mp3`: "Vacuum Cleaner switch on, run, switch off 2.aif" by DJ Burnham (Freesound, CC0 1.0, cut 0.0-3.6s) https://freesound.org/s/141682/
+- `vacuum_stop.mp3`: "Vacuum Cleaner switch on, run, switch off 2.aif" by DJ Burnham (Freesound, CC0 1.0, cut 26.8-31.0s) https://freesound.org/s/141682/
+- `water_splash_1.mp3`: "water_splash_10shots.wav" by vibe_crc (Freesound, CC0 1.0, event 2 of auto-detected hits) https://freesound.org/s/50623/
+- `water_splash_2.mp3`: "water_splash_10shots.wav" by vibe_crc (Freesound, CC0 1.0, event 6 of auto-detected hits) https://freesound.org/s/50623/
+- `water_splash_3.mp3`: "Water_Short_PourOnPorcelain.wav" by LamaMakesMusic (Freesound, CC0 1.0, cut 0.0-5.9s) https://freesound.org/s/403500/
+- `wetvac_loop.mp3`: "Shop Vac" by C-V (Freesound, CC0 1.0, loop 5.0s from 10.50s, 1.5s crossfade) https://freesound.org/s/768573/
