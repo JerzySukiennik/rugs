@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rug Rush base</title>
+<style>html,body{margin:0;height:100%;background:#111;overflow:hidden}#app{position:fixed;inset:0}</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@dimforge/rapier3d-compat":"https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"}}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import { boot } from './devkit.js';
+import { floorBaseHeightAt } from '../src/world/layout.js';
+const rr = await boot({ title: 'base' });
+const { THREE, R, engine, physics } = rr;
+const mat = new THREE.MeshStandardMaterial({ color: 0xd04a3a, roughness: 0.5 });
+const boxes = [];
+for (let i = 0; i < 12; i++) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), mat);
+  m.castShadow = true;
+  engine.scene.add(m);
+  const b = physics.createBody(R.RigidBodyDesc.dynamic().setTranslation(-4 + i * 0.7, 2 + i * 0.3, -3 + Math.sin(i) * 3), [R.ColliderDesc.cuboid(0.2, 0.2, 0.2)]);
+  physics.bind(b, m);
+  boxes.push(b);
+}
+rr.check = () => [[-3, -3], [0, -6], [4, 1], [0, -3.2]].map(([x, z]) => {
+  const h = physics.raycast({ x, y: 2, z }, { x: 0, y: -1, z: 0 }, 5);
+  return { x, z, ray: +(h?.point.y ?? NaN).toFixed(4), fn: +floorBaseHeightAt(x, z).toFixed(4) };
+});
+</script>
+</body>
+</html>

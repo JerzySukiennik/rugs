@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rug Rush carpets</title>
+<style>
+html,body{margin:0;height:100%;background:#111;overflow:hidden}
+#app{position:fixed;inset:0}
+#help{position:fixed;right:8px;top:8px;font:12px ui-monospace,monospace;color:#fff;background:rgba(0,0,0,.45);padding:6px 8px;border-radius:4px;pointer-events:none;white-space:pre;line-height:1.45}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@dimforge/rapier3d-compat":"https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"}}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="help">orbit: drag / wheel
+shift+drag  lift cloth / pull roll
+B+drag      brush nap
+U  UV lamp      R  hand-roll nearest flat rug
+M  feed roller  W  wrap rolled rug
+T  throw rolled rug  K  kick roll open</div>
+<script type="module">
+import { start } from './carpet-dev.js';
+start();
+</script>
+</body>
+</html>
