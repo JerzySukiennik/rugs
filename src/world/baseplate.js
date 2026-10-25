@@ -149,12 +149,12 @@ export function buildBaseplate(engine, physics) {
   scene.add(root);
   scene.background = skyTexture();
 
-  const hemi = new THREE.HemisphereLight(0xe8eef5, 0xe3ddd2, 1.05);
+  const hemi = new THREE.HemisphereLight(0xe8eef5, 0xe3ddd2, 0.85);
   root.add(hemi);
-  const fill = new THREE.DirectionalLight(0xe9f0f8, 0.55);
+  const fill = new THREE.DirectionalLight(0xe9f0f8, 0.45);
   fill.position.set(-14, 9, -10);
   root.add(fill);
-  const sun = new THREE.DirectionalLight(0xfff3e4, 2.25);
+  const sun = new THREE.DirectionalLight(0xfff3e4, 1.85);
   sun.position.set(13, 27, 8);
   sun.target.position.set(0, 0, 0);
   sun.castShadow = true;

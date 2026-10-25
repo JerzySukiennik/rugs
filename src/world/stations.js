@@ -94,7 +94,6 @@ function shelving(parts, game, s, shelfSlots) {
     coll(game, 4.1, 0.04, 0.62, at(0, y, 0), q);
     if (y > 0.2) for (let i = 0; i < 9; i++) {
       shelfSlots.push({ pos: at(-1.75 + i * 0.44, y + 0.02, 0.02), yaw: s.rotY + Math.PI });
-      local.push(K.paint(K.box(0.09, 0.03, 0.002, { x: -1.75 + i * 0.44, y: y - 0.04, z: 0.339 }), '#f4f4f0', { r: 0.6 }));
     }
   }
   for (const g of local) {

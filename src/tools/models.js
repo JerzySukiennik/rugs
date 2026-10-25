@@ -845,8 +845,8 @@ function kraftRect() {
 }
 
 const SHELL = {
-  clear: { color: '#e6f1f4', a: 0.13, r: 0.05 },
-  natural: { color: '#f3f2ea', a: 0.5, r: 0.38 },
+  clear: { color: '#1a2226', a: 0.1, r: 0.04 },
+  natural: { color: '#f3f2ea', a: 0.36, r: 0.36 },
   tint: { color: '#ffffff', a: 0.3, r: 0.08 },
 };
 
@@ -860,8 +860,8 @@ function shellPart(key, geo, L, opaqueColor) {
 function liquidPart(key, geo, p, L) {
   const c = L.liquid ?? p.color;
   const clearish = lum(c) > 0.8;
-  const col = clearish ? hexMix(c, '#cfe6ee', 0.3) : c;
-  return def(key, 'liquid', K.paint(geo, col, { r: 0.06, a: clearish ? 0.32 : 0.82, liquid: true }));
+  const col = clearish ? hexMix(hexMix(c, '#6fb8d8', 0.35), '#000000', 0.42) : c;
+  return def(key, 'liquid', K.paint(geo, col, { r: 0.04, a: clearish ? 0.34 : 0.84, liquid: true }));
 }
 
 function capRings(r, h, y) {
@@ -875,7 +875,7 @@ function shiftAll(list, dy) {
 function bpTrigger(id, p, L, slot) {
   const k = p.capacity / 0.5;
   const sh = Math.pow(k, 0.62), sw = Math.pow(k, 0.2);
-  const hw = 0.0405 * sw, hd = 0.0278 * sw, cr = 0.02 * sw;
+  const hw = 0.0405 * sw, hd = 0.0278 * sw, cr = 0.0262 * sw;
   const yb = 0.135 * sh;
   const rings = [
     { y: 0, hw: hw - 0.0045, hd: hd - 0.0045, cr: cr - 0.0045 },
@@ -901,8 +901,8 @@ function bpTrigger(id, p, L, slot) {
     { y: yb + 0.024, hw: hw * 0.74 - 0.0013, hd: hd * 0.83 - 0.0013, cr: cr * 0.85 - 0.0013 },
     { y: yb + 0.034, hw: 0.022, hd: 0.019, cr: 0.0182 },
   ], { segs: S(40) });
-  const ly0 = 0.016, ly1 = yb - 0.008;
-  const phi = 1.22;
+  const ly0 = 0.016, ly1 = yb - 0.012;
+  const phi = 1.08;
   const backB = K.band(rings, ly0, ly1, 0.0004, { theta0: -phi, theta1: phi, segs: S(40) });
   const frontB = K.band(rings, ly0, ly1, 0.0004, { theta0: Math.PI - phi, theta1: Math.PI + phi, segs: S(40) });
   const mid = K.ringAt(rings, (ly0 + ly1) / 2);
@@ -951,7 +951,7 @@ function bpTrigger(id, p, L, slot) {
       K.paint(shroud, head, { r: 0.32 }),
       K.paint(nozzleCap, trig, { r: 0.4 }),
       K.paint(orifice, '#202020', { r: 0.6 }),
-      K.paint(tubeG, '#eef2f0', { r: 0.3 }),
+      K.paint(tubeG, '#b9c8d2', { r: 0.25 }),
     ])) },
     { key: def(`p:${id}:trigger`, 'opaque', K.paint(lever, trig, { r: 0.36 })), name: 'trigger', pos: [0, yc + 0.0115 + dy, -0.041] },
   ];
@@ -1042,8 +1042,8 @@ function bpJug(id, p, L, slot) {
     { y: hb + 0.031, hw: hw * 0.68 - 0.0014, hd: hd * 0.8 - 0.0014, cr: cr * 0.8 - 0.0014, x: -hw * 0.12 },
     { y: hb + 0.043, hw: 0.027, hd: 0.024, cr: 0.022, x: xn * 0.8 },
   ], { segs: S(40) });
-  const ly0 = 0.018, ly1 = hb - 0.014;
-  const phi = 0.95;
+  const ly0 = 0.022, ly1 = hb - 0.022;
+  const phi = 0.78;
   const backB = K.band(rings, ly0, ly1, 0.0005, { theta0: -phi, theta1: phi, segs: S(40) });
   const frontB = K.band(rings, ly0, ly1, 0.0005, { theta0: Math.PI - phi, theta1: Math.PI + phi, segs: S(40) });
   const aspect = (ly1 - ly0) / K.arcLength(K.ringAt(rings, (ly0 + ly1) / 2), -phi, phi);
@@ -1116,7 +1116,7 @@ function bpJerrycan(id, p, L, slot) {
     { y: hb + 0.011, hw: hw * 0.975 - 0.0016, hd: hd * 0.96 - 0.0016, cr: cr * 1.15 - 0.0016 },
     { y: hb + 0.016, hw: hw * 0.94 - 0.0016, hd: hd * 0.91 - 0.0016, cr: cr * 1.2 - 0.0016 },
   ], { segs: S(44) });
-  const pw = 2 * (hw - cr) + 0.004, ly0 = 0.028, ly1 = hb - 0.016, ph = ly1 - ly0;
+  const pw = 2 * (hw - cr) * 0.86, ly0 = 0.05, ly1 = hb - 0.03, ph = ly1 - ly0;
   const back = new THREE.PlaneGeometry(pw, ph);
   back.translate(0, (ly0 + ly1) / 2, hd + 0.0006);
   const front = new THREE.PlaneGeometry(pw, ph);
