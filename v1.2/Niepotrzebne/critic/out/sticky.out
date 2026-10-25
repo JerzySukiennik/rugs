@@ -1,0 +1,4 @@
+{"rows":[{"label":"scrub 5 s","s0":0.297,"sAfter":0.192,"removedPct":35.4,"marks":{},"gelLeft":0.072,"surfLeft":1.334},{"label":"scrub 10 s","s0":0.297,"sAfter":0.175,"removedPct":41.1,"marks":{"5":0.175},"gelLeft":0.079,"surfLeft":1.391},{"label":"scrub 20 s","s0":0.297,"sAfter":0.184,"removedPct":38,"marks":{"5":0.184,"10":0.184},"gelLeft":0.05,"surfLeft":1.338},{"label":"scrub 40 s","s0":0.297,"sAfter":0.181,"removedPct":39.1,"marks":{"5":0.181,"10":0.181,"20":0.181,"30":0.181},"gelLeft":0.058,"surfLeft":1.355}],"done":true}
+elapsed 94 s
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)

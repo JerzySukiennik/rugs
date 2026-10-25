@@ -1,0 +1,4 @@
+{"res":{"scan":{"samples":1681,"hits":{"label":28,"rug":1506,"none":147},"labelFraction":0.017,"labelBBox":[-0.87,-0.83,-5,-5]},"aimAtDefault":{"part":"top","owner":"carpet"}},"done":true}
+elapsed 2
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)

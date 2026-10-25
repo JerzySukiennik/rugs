@@ -1,0 +1,16 @@
+{
+  "amb_warehouse_loop": {
+    "file": "amb_warehouse_loop.mp3",
+    "dur": 20.3,
+    "loop": true,
+    "title": "Large Warehouse/Factory Ambience",
+    "author": "fimrod"
+  },
+  "amb_rain_roof_loop": {
+    "file": "amb_rain_roof_loop.mp3",
+    "dur": 30.0,
+    "loop": true,
+    "title": "Indoors_Shed_RainOnTinRoof_01",
+    "author": "MrFossy"
+  }
+}

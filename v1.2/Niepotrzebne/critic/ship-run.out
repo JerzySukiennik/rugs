@@ -1,0 +1,16 @@
+[0.8s] rug cut state=flat body=false
+[2.0s] on belt: true roller=idle
+[2.4s] roller press -> rolling msg=ROLLING
+[14.7s] roller cooldown wrapped=true grade=A+ price=59
+[shot] ship/01-wrapped.png
+[22.8s] outbound truck state=open
+[24.0s] in outbound: 1 wrapped=1
+[24.5s] aim at dispatch: owner=Outbound truck: dispatch now dist=0.95
+[24.8s] dispatch pressed: requested=true truck=closing
+[shot] ship/02-aim-dispatch.png
+[34.8s] dispatched: money 150 -> 209 (truck away) log=[{"t":26.183333333333128,"amount":59,"reason":"1 rug shipped"}]
+[shot] ship/03-dispatched.png
+RESULT null
+done flag true elapsed 35 s
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)

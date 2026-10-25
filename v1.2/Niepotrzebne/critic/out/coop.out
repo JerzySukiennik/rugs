@@ -1,0 +1,20 @@
+[shot] coop/01-host-menu.png
+[shot] coop/02-host-dialog.png
+[9s] host room -P4naPavFiveXLKY-bH4 mode host
+[shot] coop/03-host-in-warehouse.png
+[shot] coop/04-client-list.png
+[25s] client mode client peers host ["Rug Doctor"]
+[shot] coop/05-client-joined.png
+[shot] coop/06-host-sees-client.png
+[34s] host rug soap before 0.00 after client spray {"surf":0,"gel":0}
+[34s] client held LATHERA Rug Shampoo for Synthetics
+[shot] coop/07-host-after-client-spray.png
+[shot] coop/08-client-spraying.png
+[35s] host net {"mode":"host","room":"-P4naPavFiveXLKY-bH4","connected":true,"stateBytes":230,"netMsPerSec":3.7,"netSplit":{"surface":0,"state":2.5,"cloth":0.4,"slow":0.1,"eval":0},"peers":[{"slot":1,"name":"Rug Doctor","rtt":27,"upKBs":5.552179157117381,"downKBs":1.1961694455625733,"controlBuffered":0,"dropped":0}]}
+[35s] client net {"mode":"client","room":"-P4naPavFiveXLKY-bH4","connected":true,"slot":1,"rtt":8,"offset":10142,"downKBs":0,"upKBs":0,"totalDownKB":115,"states":258,"cloth":254,"surf":0,"surfBytes":0}
+[38s] host peers after leave 0
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[375s] done

@@ -1,0 +1,12 @@
+modes host client
+before host fills [5] rug {"surf":0,"gel":0}
+client lathera fill before [5] after "5.000"
+after host fills [5] rug {"surf":0,"gel":0}
+client held LATHERA Rug Shampoo for Synthetics client aim null
+[shot] coop/09-host-pour-check.png
+[shot] coop/10-client-pour-check.png
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+done
