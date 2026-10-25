@@ -32,6 +32,10 @@ import { Clipboard } from './ui/orders.js';
 import { StainHint } from './ui/stainHint.js';
 import { Briefing } from './game/briefing.js';
 import { Assistant } from './ui/assistant.js';
+import { Progress } from './game/progress.js';
+import { RugCard } from './ui/rugCard.js';
+import { Reputation } from './game/reputation.js';
+import { Motes } from './world/motes.js';
 import { Net } from './net/net.js';
 
 const _v = new THREE.Vector3();
@@ -218,6 +222,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
   };
 
   buildStations(game);
+  if (!params.has('nomotes')) engine.add(new Motes(engine), 870);
   const roller = new Roller(game, { x: LAYOUT.roller.x, z: LAYOUT.roller.z, yaw: 0 });
   game.roller = roller;
   engine.add(roller, -30);
@@ -270,18 +275,6 @@ export async function createGame({ container, params = new URLSearchParams(locat
     chem.detach(c);
     carpets?.remove(c);
     entities.map.delete(c.id);
-  };
-
-  game.makeJobs = (trip) => {
-    const pool = trip < 1 ? ['cut', 'loop'] : trip < 2 ? ['cut', 'loop', 'shag'] : trip < 3 ? ['cut', 'shag', 'persian', 'kilim'] : ['cut', 'loop', 'shag', 'persian', 'kilim', 'sisal', 'silk', 'persian'];
-    const n = trip === 0 ? 2 : 1 + Math.floor(game.rnd() * 3);
-    const jobs = [];
-    for (let i = 0; i < n; i++) {
-      const type = pool[Math.floor(game.rnd() * pool.length)];
-      const sizes = CARPET_TYPES[type].sizes;
-      jobs.push({ type, size: sizes[Math.floor(game.rnd() * sizes.length)] });
-    }
-    return jobs;
   };
 
   game.onTruckParked = (truck) => {
@@ -465,6 +458,12 @@ function setupFlow(game) {
   engine.add(game.briefing, 988);
   game.assistant = new Assistant(game);
   engine.add(game.assistant, 992);
+  game.progress = new Progress(game);
+  engine.add(game.progress, 984);
+  game.rugCard = new RugCard(game);
+  engine.add(game.rugCard, 989);
+  game.reputation = new Reputation(game);
+  engine.add(game.reputation, 987);
   game.radio = new Radio(game, new THREE.Vector3(-8.6, 1.0, 1.85), Math.PI / 2);
   let selfAv = null;
   const buildSelf = (look) => {
@@ -507,6 +506,7 @@ function setupFlow(game) {
       t.trips = 0;
     }
     game.flags = {};
+    game.reputation?.reset();
     const dk = LAYOUT.inboundDock;
     player.teleport(new THREE.Vector3(LAYOUT.spawn.x, 0, LAYOUT.spawn.z), Math.atan2(-(dk.x - LAYOUT.spawn.x), -(dk.z - LAYOUT.spawn.z)));
     player.pitch = -0.05;

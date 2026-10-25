@@ -171,6 +171,8 @@ export class Briefing {
     return {
       mode: g.mode,
       money: Math.round(g.economy?.money ?? 0),
+      reputationStars: g.stats.reviews ? g.stats.rep : 'new business, no reviews yet',
+      lastReviews: (g.reviewLog ?? []).slice(-3).map((r) => `${r.stars} stars from ${r.client} for ${r.rug}: ${r.quote}`),
       you,
       otherPlayers: others,
       rugs: (g.carpets?.list ?? []).map((c) => this.rug(c, me)),

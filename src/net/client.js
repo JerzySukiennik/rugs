@@ -157,6 +157,10 @@ export class ClientSession {
         if (g.shop?.isOpen) g.shop.render();
         return;
       case 'toast': return g.hud.toast(msg.text, msg.bad, msg.ms);
+      case 'review':
+        g.stats.rep = msg.rep;
+        g.stats.reviews = msg.reviews;
+        return g.reputation?.show(msg.r);
       case 'roller':
         if (msg.msg) g.roller?.say(msg.msg);
         return;

@@ -16,3 +16,6 @@ Every file is a Freesound recording under CC0 1.0 (public domain dedication, no 
 - `ui_leave.mp3`: "SLIDE WHISTLE - 1" by SamuelGremaud (Freesound, CC0 1.0). Source: https://freesound.org/people/SamuelGremaud/sounds/517633/
 - `ui_stamp.mp3`: "traditional stamp.wav" by I.fekry (Freesound, CC0 1.0). Source: https://freesound.org/people/I.fekry/sounds/470710/
 - `ui_slider.mp3`: "Single_Ratchet-05.wav" by CallFlan (Freesound, CC0 1.0). Source: https://freesound.org/people/CallFlan/sounds/495238/
+- `ui_sparkle.mp3`: "ShiningRinging" by NoisyRedFox (Freesound, CC0 1.0). Source: https://freesound.org/people/NoisyRedFox/sounds/759840/
+- `ui_ding.mp3`: "ding.wav" by Daphne_in_Wonderland (Freesound, CC0 1.0). Source: https://freesound.org/people/Daphne_in_Wonderland/sounds/127149/
+- `ui_spotless.mp3`: "Achievment Chimes.wav" by LaurenPonder (Freesound, CC0 1.0), trimmed to 3.6 s. Source: https://freesound.org/people/LaurenPonder/sounds/635665/

@@ -2,21 +2,6 @@
 import { drawCareLabel } from './careLabel.js';
 import { productIcon, toolIcon } from './icons.js';
 
-const DIRT_NAMES = {
-  dust: 'dust & grit',
-  hair: 'pet hair',
-  mud: 'dried mud',
-  sticky: 'sticky soda',
-  wine: 'red wine',
-  coffee: 'coffee',
-  grease: 'grease',
-  urine: 'urine',
-  gum: 'chewing gum',
-  wax: 'candle wax',
-  paint: 'paint',
-  mold: 'mould',
-};
-
 const CSS = `
 #hud{position:fixed;inset:0;pointer-events:none;font:600 14px/1.35 'Fredoka',ui-rounded,'Arial Rounded MT Bold',system-ui,sans-serif;color:#1b1b1e;user-select:none;-webkit-font-smoothing:antialiased}
 #hud .x{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;border:2px solid #1b1b1e;box-sizing:border-box;transition:transform .15s cubic-bezier(.2,1.8,.4,1)}
@@ -77,7 +62,6 @@ export class Hud {
     this.last = { aim: '', held: '' };
     this.labelOpen = false;
     this.money = 0;
-    this.inspectCache = new Map();
   }
 
   buildStart(onStart) {
@@ -143,22 +127,9 @@ export class Hud {
       html = `<b>${d.label}</b><br>${d.actions.map((a) => `<span class="k">${a}</span>`).join('')}`;
       if (aim.owner?.kind === 'carpet' && game.chem) {
         const c = aim.owner;
-        let ev = this.inspectCache.get(c);
-        const now = performance.now();
-        if (!ev || now - ev.t > 500) {
-          ev = { t: now, v: game.chem.evaluate(c) };
-          this.inspectCache.set(c, ev);
-        }
         const sh = game.stainHover;
         if (sh) html += `<span class="insp stain"><i>${sh.name}</i>${sh.tip}</span>`;
-        if (c.job?.note && c.state !== 'rolled') html += `<span class="insp">${c.job.client}: “${c.job.note}”</span>`;
-        if (ev.v) {
-          const v = ev.v;
-          const dry = v.dryEnough ? 'Dry enough to roll \u2713' : v.wet > 0.02 ? `Wet ${Math.round(v.wet * 100)}% (roll at <12%)` : 'Dry';
-          html += `<span class="insp">Clean ${Math.round(v.clean * 100)}% · ${dry} · ${v.damage > 0.01 || v.damagePeak > 0.005 ? `Damage ${Math.round(Math.max(v.damage, v.damagePeak) * 100)}%` : 'No damage'}${v.residue > 0.05 ? ' · Soap left: rinse it' : ''}</span>`;
-          const left = Object.entries(v.per).filter(([k, x]) => x > 0.004 && k !== 'urine').sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k]) => DIRT_NAMES[k]);
-          if (left.length) html += `<span class="insp">Still dirty: ${left.join(', ')}${game.stainHover ? '' : ' · aim at a stain for how'}</span>`;
-        }
+        if (c.job?.note) html += `<span class="insp">${c.job.client}: “${c.job.note}”</span>`;
       }
     } else if (g?.held?.kind === 'cloth' || g?.held?.kind === 'heavy') {
       html = '<span class="k">E / Q drop</span><span class="k">F throw</span><span class="k">wheel distance</span>';

@@ -179,8 +179,13 @@ export class Chemistry {
       f[a][i] -= rem;
       if (a === 'surf') soap += rem;
     }
-    const remSusp = f.susp[i] * k;
-    f.susp[i] -= remSusp;
+    const loose = f.dust[i] * k * 0.12 + f.mud[i] * k * 0.06 + f.sticky[i] * k * 0.05 + f.hair[i] * k * 0.03;
+    f.dust[i] -= f.dust[i] * k * 0.12;
+    f.mud[i] -= f.mud[i] * k * 0.06;
+    f.sticky[i] -= f.sticky[i] * k * 0.05;
+    f.hair[i] -= f.hair[i] * k * 0.03;
+    const remSusp = f.susp[i] * k + loose;
+    f.susp[i] -= f.susp[i] * k;
     const remGel = f.gel[i] * k;
     f.gel[i] -= remGel;
     f.foam[i] -= f.foam[i] * Math.min(1, k * 1.3);

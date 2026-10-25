@@ -30,6 +30,8 @@ const CSS = `
 #rr-buddy form button{font-family:var(--display);font-size:17px;color:var(--ink);background:var(--yellow);border:3px solid var(--ink);border-radius:13px;padding:0 14px;cursor:pointer;box-shadow:0 4px 0 var(--ink)}
 #rr-buddy form button:disabled{filter:grayscale(1) opacity(.55);cursor:default}
 #rr-buddy-tip{position:fixed;left:18px;bottom:18px;z-index:3;font:600 12.5px var(--font);color:var(--ink);padding:5px 10px;border:2px solid var(--ink);border-radius:11px;background:#fffaf0;box-shadow:2px 2px 0 var(--ink);pointer-events:none;display:none}
+#rr-buddy-tip.nudge{animation:rr-buddy-n .6s cubic-bezier(.2,1.6,.4,1) 4;background:#ffd23f}
+@keyframes rr-buddy-n{50%{transform:scale(1.18) rotate(-3deg)}}
 #rr-buddy-tip b{display:inline-block;padding:0 6px;margin-right:4px;border:2px solid var(--ink);border-radius:7px;background:var(--yellow)}
 `;
 
@@ -69,6 +71,13 @@ export class Assistant {
         this.close();
       }
     });
+  }
+
+  nudge() {
+    this.tip.classList.remove('nudge');
+    void this.tip.offsetWidth;
+    this.tip.classList.add('nudge');
+    setTimeout(() => this.tip.classList.remove('nudge'), 9000);
   }
 
   bubble(cls, text) {

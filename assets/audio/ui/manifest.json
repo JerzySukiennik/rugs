@@ -96,5 +96,26 @@
     "loop": false,
     "title": "Single_Ratchet-05.wav",
     "author": "CallFlan"
+  },
+  "ui_sparkle": {
+    "file": "ui_sparkle.mp3",
+    "dur": 0.65,
+    "loop": false,
+    "title": "ShiningRinging",
+    "author": "NoisyRedFox"
+  },
+  "ui_ding": {
+    "file": "ui_ding.mp3",
+    "dur": 1.37,
+    "loop": false,
+    "title": "ding.wav",
+    "author": "Daphne_in_Wonderland"
+  },
+  "ui_spotless": {
+    "file": "ui_spotless.mp3",
+    "dur": 3.6,
+    "loop": false,
+    "title": "Achievment Chimes.wav",
+    "author": "LaurenPonder"
   }
 }

@@ -29,6 +29,8 @@ export class Juice {
     this.order = 860;
     this.shakeAmt = 0;
     this.floaters = [];
+    this.sparks = [];
+    this.sparkPool = [];
     this.flashEl = document.createElement('div');
     this.flashEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .35s;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,93,143,.55))';
     document.body.append(this.flashEl);
@@ -46,11 +48,53 @@ export class Juice {
     this.ft = setTimeout(() => (this.flashEl.style.opacity = '0'), 160);
   }
 
-  float(text, pos, color = '#52c46b') {
+  float(text, pos, color = '#52c46b', size = 1) {
     const s = textSprite(text, color);
     s.position.copy(pos);
     this.game.engine.scene.add(s);
-    this.floaters.push({ s, t: 0, base: pos.clone() });
+    this.floaters.push({ s, t: 0, base: pos.clone(), size, life: 1.6 + (size - 1) * 0.8 });
+  }
+
+  sparkle(pos, color = '#fff6c8', n = 46, spread = 1) {
+    const pts = this.sparkPool?.pop() ?? this.makeSparks();
+    const geo = pts.geometry;
+    const p = geo.attributes.position.array, v = pts.userData.vel;
+    for (let i = 0; i < 64; i++) {
+      const on = i < n;
+      const a = Math.random() * Math.PI * 2, r = (0.35 + Math.random() * 0.9) * spread, up = 0.6 + Math.random() * 1.8;
+      p[i * 3] = pos.x; p[i * 3 + 1] = pos.y; p[i * 3 + 2] = pos.z;
+      v[i * 3] = on ? Math.cos(a) * r : 0; v[i * 3 + 1] = on ? up : -50; v[i * 3 + 2] = on ? Math.sin(a) * r : 0;
+    }
+    geo.attributes.position.needsUpdate = true;
+    pts.material.uniforms.uColor.value.set(color);
+    pts.material.uniforms.uT.value = 0;
+    pts.visible = true;
+    this.game.engine.scene.add(pts);
+    this.sparks.push(pts);
+  }
+
+  makeSparks() {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(64 * 3), 3).setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('seed', new THREE.BufferAttribute(Float32Array.from({ length: 64 }, () => Math.random()), 1));
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { uT: { value: 0 }, uColor: { value: new THREE.Color('#fff6c8') }, uPx: { value: this.game.engine.renderer.getPixelRatio() } },
+      vertexShader: `attribute float seed; uniform float uT; uniform float uPx; varying float vA; varying float vS;
+void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv;
+float life = clamp(uT / (0.9 + seed * 0.6), 0.0, 1.0); vA = (1.0 - life) * (0.6 + 0.4 * sin(uT * 30.0 + seed * 40.0)); vS = seed;
+gl_PointSize = (14.0 + seed * 22.0) * (1.0 - life * 0.5) * uPx / max(0.5, -mv.z) * 4.0; }`,
+      fragmentShader: `uniform vec3 uColor; varying float vA; varying float vS;
+void main(){ vec2 q = gl_PointCoord - 0.5; float d = length(q); float star = max(0.0, 1.0 - (abs(q.x) + abs(q.y)) * 2.2) + max(0.0, 0.5 - d) * 1.6;
+float a = clamp(star, 0.0, 1.0) * vA; if (a < 0.01) discard; gl_FragColor = vec4(mix(uColor, vec3(1.0), 0.5 * star), a); }`,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const pts = new THREE.Points(geo, mat);
+    pts.frustumCulled = false;
+    pts.renderOrder = 21;
+    pts.userData.vel = new Float32Array(64 * 3);
+    return pts;
   }
 
   confetti(n = 70) {
@@ -153,11 +197,27 @@ export class Juice {
       cam.updateMatrixWorld();
       this.shakeAmt *= Math.exp(-dt * 6);
     }
+    for (const pts of [...this.sparks]) {
+      const u = pts.material.uniforms.uT;
+      u.value += dt;
+      const p = pts.geometry.attributes.position.array, v = pts.userData.vel;
+      for (let i = 0; i < 64; i++) {
+        v[i * 3 + 1] -= 3.2 * dt;
+        p[i * 3] += v[i * 3] * dt; p[i * 3 + 1] += v[i * 3 + 1] * dt; p[i * 3 + 2] += v[i * 3 + 2] * dt;
+        v[i * 3] *= 1 - 1.8 * dt; v[i * 3 + 2] *= 1 - 1.8 * dt;
+      }
+      pts.geometry.attributes.position.needsUpdate = true;
+      if (u.value > 1.6) {
+        pts.removeFromParent();
+        this.sparks.splice(this.sparks.indexOf(pts), 1);
+        this.sparkPool.push(pts);
+      }
+    }
     for (const f of [...this.floaters]) {
       f.t += dt;
-      const k = f.t / 1.6;
-      f.s.position.copy(f.base).add(new THREE.Vector3(0, k * 1.2, 0));
-      const sc = Math.min(1, f.t * 6) * (1 + Math.max(0, 0.25 - f.t) * 1.6);
+      const k = f.t / f.life;
+      f.s.position.copy(f.base).add(new THREE.Vector3(0, k * 1.2 * f.size, 0));
+      const sc = Math.min(1, f.t * 6) * (1 + Math.max(0, 0.25 - f.t) * 1.6) * f.size;
       f.s.scale.set(1.6 * sc, 0.5 * sc, 1);
       f.s.material.opacity = 1 - Math.max(0, k - 0.6) / 0.4;
       if (k >= 1) {
