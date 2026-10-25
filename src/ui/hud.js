@@ -3,18 +3,18 @@ import { drawCareLabel } from './careLabel.js';
 import { productIcon, toolIcon } from './icons.js';
 
 const DIRT_NAMES = {
-  dust: 'dust & grit (vacuum)',
-  hair: 'pet hair (rubber brush, vacuum)',
-  mud: 'dried mud (dry brush, then vacuum)',
-  sticky: 'sticky soda (shampoo + scrub + rinse)',
-  wine: 'red wine (oxygen spotter or tannin spotter)',
-  coffee: 'coffee (tannin spotter)',
-  grease: 'grease (absorbent powder, wait, vacuum)',
+  dust: 'dust & grit',
+  hair: 'pet hair',
+  mud: 'dried mud',
+  sticky: 'sticky soda',
+  wine: 'red wine',
+  coffee: 'coffee',
+  grease: 'grease',
   urine: 'urine',
-  gum: 'chewing gum (freeze spray, then scrape)',
-  wax: 'candle wax (scrape, then iron)',
-  paint: 'paint (alcohol or white spirit + scrape)',
-  mold: 'mould (anti-mould, wait, vacuum)',
+  gum: 'chewing gum',
+  wax: 'candle wax',
+  paint: 'paint',
+  mold: 'mould',
 };
 
 const CSS = `
@@ -157,7 +157,7 @@ export class Hud {
           const dry = v.dryEnough ? 'Dry enough to roll \u2713' : v.wet > 0.02 ? `Wet ${Math.round(v.wet * 100)}% (roll at <12%)` : 'Dry';
           html += `<span class="insp">Clean ${Math.round(v.clean * 100)}% · ${dry} · ${v.damage > 0.01 || v.damagePeak > 0.005 ? `Damage ${Math.round(Math.max(v.damage, v.damagePeak) * 100)}%` : 'No damage'}${v.residue > 0.05 ? ' · Soap left: rinse it' : ''}</span>`;
           const left = Object.entries(v.per).filter(([k, x]) => x > 0.004 && k !== 'urine').sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k]) => DIRT_NAMES[k]);
-          if (left.length) html += `<span class="insp">Still dirty: ${left.join(', ')}</span>`;
+          if (left.length) html += `<span class="insp">Still dirty: ${left.join(', ')}${game.stainHover ? '' : ' · aim at a stain for how'}</span>`;
         }
       }
     } else if (g?.held?.kind === 'cloth' || g?.held?.kind === 'heavy') {

@@ -1,5 +1,6 @@
 // Rug Rush stain inspector: with empty hands it names the dirt under the crosshair and outlines the whole connected stain on the rug.
 import * as THREE from 'three';
+import { stainAdvice } from '../data/advice.js';
 
 export const STAINS = {
   dust: { name: 'Dust & grit', tip: 'Vacuum it with the upright vac', map: 'dirt0', ch: 0, min: 50 },
@@ -183,6 +184,6 @@ export class StainHint {
         this.kind = null;
       }
     }
-    g.stainHover = hit && this.kind ? { kind: this.kind, ...STAINS[this.kind] } : null;
+    g.stainHover = hit && this.kind ? { kind: this.kind, ...STAINS[this.kind], tip: stainAdvice(this.kind, this.carpet?.type) ?? STAINS[this.kind].tip } : null;
   }
 }

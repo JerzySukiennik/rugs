@@ -125,7 +125,7 @@ export class Chemistry {
         this.flushCell(st, i, Math.min(0.85, d * 2.5), d * 0.45, uv);
         f.water[i] += d * 0.55;
       } else if (kind === 'mist') {
-        f.water[i] += perM2 / L_WATER;
+        f.water[i] += (perM2 / L_WATER) * (p?.water ?? 1);
         this.addAgents(f, i, p, perM2 / L_MIST);
       } else if (kind === 'gel') {
         const d = perM2 / L_GEL;
@@ -158,7 +158,6 @@ export class Chemistry {
       if (f.gel[i] > 3) f.gel[i] = 3;
       if (f.powder[i] > 3) f.powder[i] = 3;
       if (f.foam[i] > 1.6) f.foam[i] = 1.6;
-      if (p) for (const a in p.agents) if (f[a][i] > 6) f[a][i] = 6;
       if (f.water[i] > 1) this.runoffCell(st, i, uv);
     });
   }
@@ -166,7 +165,10 @@ export class Chemistry {
   addAgents(f, i, p, units) {
     if (!p) return;
     const fo = p.foaminess ?? 1;
-    for (const [a, c] of Object.entries(p.agents)) f[a][i] += c * units * (a === 'surf' ? fo : 1);
+    for (const [a, c] of Object.entries(p.agents)) {
+      const prev = f[a][i];
+      f[a][i] = Math.min(Math.max(prev, 6 * c), prev + c * units * (a === 'surf' ? fo : 1));
+    }
   }
 
   flushCell(st, i, k, passUnits, uv) {
@@ -519,6 +521,7 @@ export class Chemistry {
     const foam = f.foam, wetT = f.wetT, susp = f.susp, dust = f.dust;
     const oxTol = fb.oxTol, enzTol = fb.enzTol, chlorTol = fb.chlorTol, alkTol = fb.alkTol, solvTol = fb.solvTol, waterTol = fb.waterTol;
     const browning = fb.browning, bleedAlk = fb.bleedAlk, bleedWet = fb.bleedWet, waterMarks = fb.waterMarks;
+    const solvBleed = fb.bleedSolv ?? 1;
     const protein = st.type === 'persian' || st.type === 'silk';
     const silk = st.type === 'silk';
     const agitDecay = Math.min(1, 1.5 * dt);
@@ -594,7 +597,7 @@ export class Chemistry {
         gum[i] -= gum[i] * sv * 0.02 * m * dt;
         wax[i] -= wax[i] * sv * 0.025 * dt;
         solv[i] = sv - sv * 0.05 * dt;
-        if (sv > solvTol) bleed[i] += (sv - solvTol) * 0.03 * dt * fixK;
+        if (sv > solvTol) bleed[i] += (sv - solvTol) * 0.03 * dt * fixK * solvBleed;
       }
       const ab = absorb[i];
       if (ab > 0.01 && powder[i] > 0.04) {
@@ -616,6 +619,7 @@ export class Chemistry {
         alk[i] -= n;
         acid[i] = ac - n - ac * 0.01 * dt;
         coffee[i] -= coffee[i] * ac * 0.006 * dt;
+        urine[i] -= urine[i] * ac * 0.05 * dt;
         fix[i] += ac * 0.002 * dt;
       }
       const cd = cold[i];

@@ -3,6 +3,7 @@
 import { PRODUCTS, TOOLS } from "../../src/data/products.js";
 import { FIBERS } from "../../src/data/fibers.js";
 import { CARPET_TYPES } from "../../src/data/carpetTypes.js";
+import { STAIN_KINDS, stainAdvice } from "../../src/data/advice.js";
 
 const AGENT_TEXT = {
   surf: "surfactant (lifts sticky soil, dust, light stains when scrubbed wet)",
@@ -43,6 +44,10 @@ function toolLines() {
   return Object.values(TOOLS).map((t) => `- ${t.name} [$${t.price}]: ${use[t.kind] ?? t.kind}`).join("\n");
 }
 
+function adviceLines() {
+  return Object.entries(CARPET_TYPES).map(([id, t]) => `${t.name}:\n${STAIN_KINDS.map((k) => `  - ${k}: ${stainAdvice(k, id)}`).join("\n")}`).join("\n");
+}
+
 function fibreLines() {
   return Object.entries(CARPET_TYPES).map(([id, t]) => {
     const f = FIBERS[id];
@@ -52,6 +57,7 @@ function fibreLines() {
     rules.push(`oxygen ${f.oxTol}`);
     rules.push(f.enzTol === 0 ? "NO enzymes" : "enzymes ok");
     rules.push(f.chlorTol === 0 ? "NO chlorine" : f.chlorTol < 0.5 ? "chlorine only very weak" : "chlorine tolerated");
+    rules.push(f.solvTol >= 10 ? "white spirit ok" : "no strong solvent like white spirit (light alcohol mist only)");
     if (f.waterTol < 0.5) rules.push("almost no water (water marks / browning)");
     if (!f.beater) rules.push("no beater bar");
     if (!f.stiff) rules.push("no stiff brush");
@@ -88,13 +94,15 @@ The job loop: the inbound truck (the ↓ RUGS marker) brings rolled rugs. Drag a
 Cleaning mechanics:
 - Products only work while there is liquid on the fibres; scrubbing a dry rug does little. Gels and powders need water or scrubbing to activate; foam is low-moisture.
 - Scrubbing spreads soap and lifts dirt into suspension; rinsing removes it. If a rug dries with dirt still suspended, it settles back as dust and stickiness. Soap left in the rug lowers the grade, so rinse until it is gone.
-- Dust and hair: vacuum first (rubber brush or rake helps with hair). Dried mud: let it be dry, stiff brush (where allowed) and vacuum, or scrape lumps.
-- Sticky soda: shampoo, scrub wet, rinse. Grease: absorbent powder, wait, vacuum; or degreaser or solvent on synthetics. Wine and coffee: oxygen or tannin spotter (red wine dye: reducer), scrub, rinse. Urine: find it with the UV torch, enzyme cleaner, let it dwell, rinse; not on wool or silk. Gum: freeze spray, then scrape. Wax: scrape, then iron over brown paper. Paint: alcohol or white spirit, then scrape. Mould: anti-mould fungicide, let it work, then vacuum.
+- Stains: always use the method for that exact rug type from "Safe stain methods per rug type" below. Never suggest a product that breaks that rug's limits, even if it works on other rugs. Urine is invisible until you shine the UV torch on it.
 - A rug left soaking wet for about 90 seconds starts to go mouldy, so squeegee and dry soon after rinsing. Water marks show on sisal and silk.
-- Fragile rules: Persian wool needs pH-neutral products only (no alkali shampoo, no enzymes, no oxygen, no chlorine) and gentle tools. Silk is dry-clean only: dry compound or solvent spotting, no water, no brushes. Sisal is dry-clean only: dry compound, keep it dry. Kilim cotton runs its colours: use the dye-lock fixer first and don't soak it. Synthetics (loop, cut, shag) tolerate strong alkali; shag needs the rake, no beater bar.
+- Fragile rules: Persian wool needs pH-neutral products only (no alkali shampoo, no enzymes, no oxygen, no chlorine) and gentle tools. Silk is dry-clean only: dry compound or a light alcohol mist, almost no water, and only the soft brush while it is dry. Sisal is dry-clean only: dry compound, keep it dry. Kilim cotton runs its colours: use the dye-lock fixer first and don't soak it. Synthetics (loop, cut, shag) tolerate strong alkali and white spirit; shag needs the rake, no beater bar. Strong solvent (white spirit) runs the dyes on wool, silk, sisal and kilim.
 
 Rug types and their limits:
 ${fibreLines()}
+
+Safe stain methods per rug type:
+${adviceLines()}
 
 Agents in products:
 ${Object.entries(AGENT_TEXT).map(([k, v]) => `- ${k}: ${v}`).join("\n")}

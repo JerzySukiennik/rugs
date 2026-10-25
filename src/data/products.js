@@ -39,7 +39,7 @@ export const PRODUCTS = {
   },
   solvane: {
     brand: 'SOLVANE', name: 'Dry Solvent Spotter', container: 'trigger', form: 'mist', color: '#e9e3c4',
-    capacity: 0.5, rate: 0.012, agents: { solv: 1 }, price: 14,
+    capacity: 0.5, rate: 0.012, water: 0, agents: { solv: 1 }, price: 14,
     blurb: 'Oil, grease, paint, gum residue. No water.',
   },
   tannex: {
@@ -69,7 +69,7 @@ export const PRODUCTS = {
   },
   alcotol: {
     brand: 'ALCOTOL', name: 'Isopropyl Alcohol 70%', container: 'trigger', form: 'mist', color: '#f0f6fa',
-    capacity: 0.5, rate: 0.012, agents: { solv: 0.6 }, price: 7,
+    capacity: 0.5, rate: 0.012, water: 0.1, agents: { solv: 0.6 }, price: 7,
     blurb: 'Ink and dried latex. Dab, never rub.',
   },
   thinra: {
@@ -89,7 +89,7 @@ export const PRODUCTS = {
   },
   frostik: {
     brand: 'FROSTIK', name: 'Gum Freeze Spray', container: 'aerosol', form: 'mist', color: '#cfefff',
-    capacity: 0.3, rate: 0.02, agents: { cold: 1 }, price: 9,
+    capacity: 0.3, rate: 0.02, water: 0, agents: { cold: 1 }, price: 9,
     blurb: 'Freezes gum and wax brittle. Then scrape.',
   },
   foamo: {
