@@ -682,14 +682,14 @@ export function buildHall(game) {
   wallColl('x', H.minX - 0.04, H.minZ, H.maxZ, []);
   wallColl('x', H.maxX + 0.1, H.minZ, H.maxZ, doorHoles);
 
-  const _pv = new THREE.Vector3();
   let pdOpen = 0;
   const sys = {
     update(dt) {
+      const trucks = game.trucks ?? [];
       for (let i = 0; i < doors.length; i++) {
         const d = doors[i];
-        const t = game.trucks?.find((k) => k.dock === d.dk);
-        const want = t && OPEN_STATES.has(t.state) ? 1 : 0;
+        let want = 0;
+        for (let k = 0; k < trucks.length; k++) if (trucks[k].dock === d.dk && OPEN_STATES.has(trucks[k].state)) want = 1;
         if (Math.abs(want - d.open) > 1e-4) {
           d.open = want > d.open ? Math.min(1, d.open + dt * 0.24) : Math.max(0, d.open - dt * 0.2);
           placeDoor(d, i);
@@ -697,13 +697,16 @@ export function buildHall(game) {
         const blocked = d.open < 0.55;
         if (d.coll.isEnabled() !== blocked) d.coll.setEnabled(blocked);
       }
-      const ps = game.players?.length ? game.players : game.player ? [game.player] : [];
       let near = false;
-      for (const p of ps) {
-        const f = p.feet ?? p.position;
-        if (!f) continue;
-        _pv.set(H.maxX, 0, pd.z);
-        if (Math.hypot(f.x - _pv.x, f.z - _pv.z) < 1.9) near = true;
+      const ps = game.players;
+      if (ps?.length) {
+        for (let k = 0; k < ps.length; k++) {
+          const f = ps[k].feet ?? ps[k].position;
+          if (f && Math.hypot(f.x - H.maxX, f.z - pd.z) < 1.9) near = true;
+        }
+      } else if (game.player?.feet) {
+        const f = game.player.feet;
+        near = Math.hypot(f.x - H.maxX, f.z - pd.z) < 1.9;
       }
       pdOpen += ((near ? 1 : 0) - pdOpen) * Math.min(1, dt * 5);
       leafPivot.rotation.y = -pdOpen * 1.65;
