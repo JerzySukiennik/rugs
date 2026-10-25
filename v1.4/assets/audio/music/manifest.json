@@ -1,0 +1,37 @@
+{
+  "menu_loop": {
+    "file": "menu_loop.mp3",
+    "dur": 34.0,
+    "loop": true,
+    "title": "Happy Day in Beach Hand Pan.wav",
+    "author": "szegvari"
+  },
+  "radio_1": {
+    "file": "radio_1.mp3",
+    "dur": 239.02,
+    "loop": false,
+    "title": "Funky Chunk",
+    "author": "Kevin MacLeod"
+  },
+  "radio_2": {
+    "file": "radio_2.mp3",
+    "dur": 165.22,
+    "loop": false,
+    "title": "Local Forecast",
+    "author": "Kevin MacLeod"
+  },
+  "radio_3": {
+    "file": "radio_3.mp3",
+    "dur": 201.46,
+    "loop": false,
+    "title": "Funkorama",
+    "author": "Kevin MacLeod"
+  },
+  "radio_4": {
+    "file": "radio_4.mp3",
+    "dur": 218.15,
+    "loop": false,
+    "title": "On Hold for You",
+    "author": "Kevin MacLeod"
+  }
+}

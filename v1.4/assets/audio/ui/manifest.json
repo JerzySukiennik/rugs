@@ -1,0 +1,100 @@
+{
+  "ui_click": {
+    "file": "ui_click.mp3",
+    "dur": 0.16,
+    "loop": false,
+    "title": "SFX UI Button Click",
+    "author": "suntemple"
+  },
+  "ui_hover": {
+    "file": "ui_hover.mp3",
+    "dur": 0.12,
+    "loop": false,
+    "title": "Soft UI Button Click",
+    "author": "Jummit"
+  },
+  "ui_pop": {
+    "file": "ui_pop.mp3",
+    "dur": 0.35,
+    "loop": false,
+    "title": "TOONY pops.wav",
+    "author": "mikala_oidua"
+  },
+  "ui_whoosh": {
+    "file": "ui_whoosh.mp3",
+    "dur": 1.19,
+    "loop": false,
+    "title": "Slide in",
+    "author": "redpanda69"
+  },
+  "ui_back": {
+    "file": "ui_back.mp3",
+    "dur": 0.64,
+    "loop": false,
+    "title": "UI Button Sound (Cancel / Back / Exit)",
+    "author": "Nomagician"
+  },
+  "ui_error": {
+    "file": "ui_error.mp3",
+    "dur": 1.06,
+    "loop": false,
+    "title": "Wrong Answer",
+    "author": "-Andreas"
+  },
+  "ui_success": {
+    "file": "ui_success.mp3",
+    "dur": 1.89,
+    "loop": false,
+    "title": "WinBrass.wav",
+    "author": "Fupicat"
+  },
+  "ui_coin": {
+    "file": "ui_coin.mp3",
+    "dur": 0.51,
+    "loop": false,
+    "title": "Coin Pickup Sound V 0.2",
+    "author": "Davidsraba"
+  },
+  "ui_shift_end": {
+    "file": "ui_shift_end.mp3",
+    "dur": 3.12,
+    "loop": false,
+    "title": "Success Fanfare Trumpets.mp3",
+    "author": "FunWithSound"
+  },
+  "ui_type": {
+    "file": "ui_type.mp3",
+    "dur": 1.61,
+    "loop": false,
+    "title": "Keyboard typing",
+    "author": "FrostyFrost"
+  },
+  "ui_join": {
+    "file": "ui_join.mp3",
+    "dur": 0.6,
+    "loop": false,
+    "title": "Ding! idea.mp3",
+    "author": "Saya13"
+  },
+  "ui_leave": {
+    "file": "ui_leave.mp3",
+    "dur": 0.72,
+    "loop": false,
+    "title": "SLIDE WHISTLE - 1",
+    "author": "SamuelGremaud"
+  },
+  "ui_stamp": {
+    "file": "ui_stamp.mp3",
+    "dur": 0.58,
+    "loop": false,
+    "title": "traditional stamp.wav",
+    "author": "I.fekry"
+  },
+  "ui_slider": {
+    "file": "ui_slider.mp3",
+    "dur": 0.07,
+    "loop": false,
+    "title": "Single_Ratchet-05.wav",
+    "author": "CallFlan"
+  }
+}

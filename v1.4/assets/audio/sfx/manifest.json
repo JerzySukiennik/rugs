@@ -1,0 +1,362 @@
+{
+ "aerosol_loop": {
+  "file": "aerosol_loop.mp3",
+  "dur": 3.0,
+  "loop": true
+ },
+ "blower_loop": {
+  "file": "blower_loop.mp3",
+  "dur": 6.0,
+  "loop": true
+ },
+ "body_fall_1": {
+  "file": "body_fall_1.mp3",
+  "dur": 1.32,
+  "loop": false
+ },
+ "body_fall_2": {
+  "file": "body_fall_2.mp3",
+  "dur": 1.47,
+  "loop": false
+ },
+ "bottle_drop_1": {
+  "file": "bottle_drop_1.mp3",
+  "dur": 1.96,
+  "loop": false
+ },
+ "bottle_drop_2": {
+  "file": "bottle_drop_2.mp3",
+  "dur": 1.74,
+  "loop": false
+ },
+ "bottle_drop_3": {
+  "file": "bottle_drop_3.mp3",
+  "dur": 2.92,
+  "loop": false
+ },
+ "brush_scrub_1": {
+  "file": "brush_scrub_1.mp3",
+  "dur": 3.0,
+  "loop": false
+ },
+ "brush_scrub_2": {
+  "file": "brush_scrub_2.mp3",
+  "dur": 3.0,
+  "loop": false
+ },
+ "brush_scrub_3": {
+  "file": "brush_scrub_3.mp3",
+  "dur": 4.39,
+  "loop": false
+ },
+ "brush_soft": {
+  "file": "brush_soft.mp3",
+  "dur": 5.0,
+  "loop": false
+ },
+ "button_press": {
+  "file": "button_press.mp3",
+  "dur": 2.6,
+  "loop": false
+ },
+ "cardboard_drop": {
+  "file": "cardboard_drop.mp3",
+  "dur": 1.81,
+  "loop": false
+ },
+ "cash_register": {
+  "file": "cash_register.mp3",
+  "dur": 1.46,
+  "loop": false
+ },
+ "cloth_flap": {
+  "file": "cloth_flap.mp3",
+  "dur": 3.97,
+  "loop": false
+ },
+ "drain_loop": {
+  "file": "drain_loop.mp3",
+  "dur": 6.0,
+  "loop": true
+ },
+ "drip_1": {
+  "file": "drip_1.mp3",
+  "dur": 0.9,
+  "loop": false
+ },
+ "drip_2": {
+  "file": "drip_2.mp3",
+  "dur": 0.8,
+  "loop": false
+ },
+ "drip_3": {
+  "file": "drip_3.mp3",
+  "dur": 3.0,
+  "loop": false
+ },
+ "dryer_loop": {
+  "file": "dryer_loop.mp3",
+  "dur": 6.0,
+  "loop": true
+ },
+ "foam_spray_loop": {
+  "file": "foam_spray_loop.mp3",
+  "dur": 4.0,
+  "loop": true
+ },
+ "footstep_carpet_1": {
+  "file": "footstep_carpet_1.mp3",
+  "dur": 0.47,
+  "loop": false
+ },
+ "footstep_carpet_2": {
+  "file": "footstep_carpet_2.mp3",
+  "dur": 0.48,
+  "loop": false
+ },
+ "footstep_carpet_3": {
+  "file": "footstep_carpet_3.mp3",
+  "dur": 0.59,
+  "loop": false
+ },
+ "footstep_tile_1": {
+  "file": "footstep_tile_1.mp3",
+  "dur": 0.29,
+  "loop": false
+ },
+ "footstep_tile_2": {
+  "file": "footstep_tile_2.mp3",
+  "dur": 0.72,
+  "loop": false
+ },
+ "footstep_tile_3": {
+  "file": "footstep_tile_3.mp3",
+  "dur": 0.24,
+  "loop": false
+ },
+ "footstep_tile_4": {
+  "file": "footstep_tile_4.mp3",
+  "dur": 0.23,
+  "loop": false
+ },
+ "footstep_wet_1": {
+  "file": "footstep_wet_1.mp3",
+  "dur": 0.45,
+  "loop": false
+ },
+ "footstep_wet_2": {
+  "file": "footstep_wet_2.mp3",
+  "dur": 0.26,
+  "loop": false
+ },
+ "footstep_wet_3": {
+  "file": "footstep_wet_3.mp3",
+  "dur": 0.43,
+  "loop": false
+ },
+ "forklift_engine_loop": {
+  "file": "forklift_engine_loop.mp3",
+  "dur": 6.0,
+  "loop": true
+ },
+ "forklift_hydraulic": {
+  "file": "forklift_hydraulic.mp3",
+  "dur": 4.0,
+  "loop": false
+ },
+ "glug_1": {
+  "file": "glug_1.mp3",
+  "dur": 2.6,
+  "loop": false
+ },
+ "glug_2": {
+  "file": "glug_2.mp3",
+  "dur": 1.43,
+  "loop": false
+ },
+ "hose_loop": {
+  "file": "hose_loop.mp3",
+  "dur": 5.0,
+  "loop": true
+ },
+ "iron_hiss": {
+  "file": "iron_hiss.mp3",
+  "dur": 7.59,
+  "loop": false
+ },
+ "label_printer": {
+  "file": "label_printer.mp3",
+  "dur": 4.34,
+  "loop": false
+ },
+ "metal_clank_1": {
+  "file": "metal_clank_1.mp3",
+  "dur": 2.18,
+  "loop": false
+ },
+ "metal_clank_2": {
+  "file": "metal_clank_2.mp3",
+  "dur": 1.22,
+  "loop": false
+ },
+ "pour_loop": {
+  "file": "pour_loop.mp3",
+  "dur": 4.0,
+  "loop": true
+ },
+ "powder_shake_loop": {
+  "file": "powder_shake_loop.mp3",
+  "dur": 3.0,
+  "loop": true
+ },
+ "ramp_clank": {
+  "file": "ramp_clank.mp3",
+  "dur": 0.8,
+  "loop": false
+ },
+ "roller_door": {
+  "file": "roller_door.mp3",
+  "dur": 16.41,
+  "loop": false
+ },
+ "roller_motor_loop": {
+  "file": "roller_motor_loop.mp3",
+  "dur": 5.0,
+  "loop": true
+ },
+ "rug_drag_loop": {
+  "file": "rug_drag_loop.mp3",
+  "dur": 6.0,
+  "loop": true
+ },
+ "rug_thud_1": {
+  "file": "rug_thud_1.mp3",
+  "dur": 0.38,
+  "loop": false
+ },
+ "rug_thud_2": {
+  "file": "rug_thud_2.mp3",
+  "dur": 0.52,
+  "loop": false
+ },
+ "rug_unroll": {
+  "file": "rug_unroll.mp3",
+  "dur": 0.99,
+  "loop": false
+ },
+ "scrape_1": {
+  "file": "scrape_1.mp3",
+  "dur": 3.97,
+  "loop": false
+ },
+ "scrape_2": {
+  "file": "scrape_2.mp3",
+  "dur": 2.6,
+  "loop": false
+ },
+ "slurp": {
+  "file": "slurp.mp3",
+  "dur": 2.48,
+  "loop": false
+ },
+ "spray_1": {
+  "file": "spray_1.mp3",
+  "dur": 1.28,
+  "loop": false
+ },
+ "spray_2": {
+  "file": "spray_2.mp3",
+  "dur": 6.86,
+  "loop": false
+ },
+ "spray_3": {
+  "file": "spray_3.mp3",
+  "dur": 6.0,
+  "loop": false
+ },
+ "squeegee_1": {
+  "file": "squeegee_1.mp3",
+  "dur": 4.98,
+  "loop": false
+ },
+ "squeegee_2": {
+  "file": "squeegee_2.mp3",
+  "dur": 2.86,
+  "loop": false
+ },
+ "stretch_film_loop": {
+  "file": "stretch_film_loop.mp3",
+  "dur": 6.0,
+  "loop": true
+ },
+ "trash_drop": {
+  "file": "trash_drop.mp3",
+  "dur": 1.34,
+  "loop": false
+ },
+ "truck_air_brake": {
+  "file": "truck_air_brake.mp3",
+  "dur": 5.44,
+  "loop": false
+ },
+ "truck_door_close": {
+  "file": "truck_door_close.mp3",
+  "dur": 1.7,
+  "loop": false
+ },
+ "truck_door_open": {
+  "file": "truck_door_open.mp3",
+  "dur": 0.96,
+  "loop": false
+ },
+ "truck_engine_loop": {
+  "file": "truck_engine_loop.mp3",
+  "dur": 4.0,
+  "loop": true
+ },
+ "truck_reverse_beep": {
+  "file": "truck_reverse_beep.mp3",
+  "dur": 1.2,
+  "loop": false
+ },
+ "uv_click": {
+  "file": "uv_click.mp3",
+  "dur": 0.13,
+  "loop": false
+ },
+ "vacuum_loop": {
+  "file": "vacuum_loop.mp3",
+  "dur": 6.0,
+  "loop": true
+ },
+ "vacuum_start": {
+  "file": "vacuum_start.mp3",
+  "dur": 3.6,
+  "loop": false
+ },
+ "vacuum_stop": {
+  "file": "vacuum_stop.mp3",
+  "dur": 4.2,
+  "loop": false
+ },
+ "water_splash_1": {
+  "file": "water_splash_1.mp3",
+  "dur": 0.26,
+  "loop": false
+ },
+ "water_splash_2": {
+  "file": "water_splash_2.mp3",
+  "dur": 0.3,
+  "loop": false
+ },
+ "water_splash_3": {
+  "file": "water_splash_3.mp3",
+  "dur": 5.2,
+  "loop": false
+ },
+ "wetvac_loop": {
+  "file": "wetvac_loop.mp3",
+  "dur": 5.0,
+  "loop": true
+ }
+}

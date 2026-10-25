@@ -1,0 +1,11 @@
+name = "rugrush-ai"
+main = "src/index.mjs"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+DAILY_USD = "1"
+
+[[kv_namespaces]]
+binding = "LIMITS"
+id = "96532be6daf647c98d3f704f6440e6ab"

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rug Rush avatars</title>
+<style>html,body{margin:0;height:100%;background:#111;overflow:hidden}#app{position:fixed;inset:0}</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@dimforge/rapier3d-compat":"https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"}}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import { boot } from './devkit.js';
+import { Avatar, randomLook } from '../src/player/avatar.js';
+const rr = await boot({ title: 'avatars', camera: [0, 1.6, 4.2], target: [0, 1.0, 0] });
+const { THREE, engine } = rr;
+let seed = 7;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const avs = [];
+for (let i = 0; i < 8; i++) {
+  const a = new Avatar(randomLook(rnd));
+  a.object3d.position.set(-3.5 + i, 0, (i % 2) * 0.6);
+  engine.scene.add(a.object3d);
+  avs.push(a);
+}
+engine.add({ update(dt) { avs.forEach((a, i) => a.setPose({ pos: a.object3d.position, yaw: Math.PI + Math.sin(performance.now() / 2000 + i) * 0.4, speed: i % 3 === 0 ? 0 : i % 3 === 1 ? 2 : 5, crouch: i === 6 ? 1 : 0, holding: i === 3, pitch: i === 5 ? -0.5 : 0, dt })); } });
+rr.avs = avs;
+</script>
+</body>
+</html>
