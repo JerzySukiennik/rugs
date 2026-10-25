@@ -33,24 +33,20 @@ void main() {
 const FRAG = `
 uniform sampler2D tMask;
 uniform vec2 uTexel;
-uniform vec2 uDims;
 uniform float uTime;
 uniform float uFade;
 varying vec2 vUv;
 void main() {
   float m = texture2D(tMask, vUv).r;
-  vec2 o = uTexel * 1.25;
+  vec2 o = uTexel * 0.9;
   float a = texture2D(tMask, vUv + vec2(o.x, 0.0)).r, b = texture2D(tMask, vUv - vec2(o.x, 0.0)).r;
   float c = texture2D(tMask, vUv + vec2(0.0, o.y)).r, d = texture2D(tMask, vUv - vec2(0.0, o.y)).r;
-  float edge = smoothstep(0.2, 0.6, max(max(a, b), max(c, d)) - min(min(a, b), min(c, d)));
-  vec2 pm = vUv * uDims;
-  float ants = step(0.5, fract((pm.x + pm.y) * 9.0 - uTime * 1.6));
-  float pulse = 0.5 + 0.5 * sin(uTime * 4.0);
-  float fill = smoothstep(0.35, 0.65, m) * (0.12 + 0.1 * pulse);
-  vec3 col = mix(vec3(1.0, 0.82, 0.25), vec3(0.11, 0.11, 0.12), ants * edge);
-  float alpha = max(edge * 0.95, fill) * uFade;
-  if (alpha < 0.01) discard;
-  gl_FragColor = vec4(mix(vec3(1.0, 0.82, 0.25), col, edge), alpha);
+  float edge = smoothstep(0.15, 0.7, max(max(a, b), max(c, d)) - min(min(a, b), min(c, d)));
+  float breathe = 0.8 + 0.2 * sin(uTime * 2.2);
+  float fill = smoothstep(0.35, 0.65, m) * 0.035;
+  float alpha = max(edge * 0.3 * breathe, fill) * uFade;
+  if (alpha < 0.004) discard;
+  gl_FragColor = vec4(1.0, 0.97, 0.88, alpha);
 }
 `;
 
@@ -127,7 +123,6 @@ export class StainHint {
       uniforms: {
         tMask: { value: tex },
         uTexel: { value: new THREE.Vector2(1 / s.W, 1 / s.H) },
-        uDims: { value: new THREE.Vector2(c.width, c.length) },
         uTime: this.time,
         uFade: { value: 0 },
         uOff: { value: (c.typeDef?.backing ?? 0.004) + (c.pileTop ?? 0) + 0.004 },
