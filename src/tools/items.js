@@ -108,7 +108,9 @@ export class Container extends Item {
       ? { pos: new THREE.Vector3(0.24, -0.34, -0.62), rot: new THREE.Euler(0, 0, 0) }
       : p.container === 'foamer'
         ? { pos: new THREE.Vector3(0.3, -0.46, -0.62), rot: new THREE.Euler(0, 0, 0) }
-        : { pos: new THREE.Vector3(0.24, -0.26, -0.55), rot: new THREE.Euler(0, 0, 0) };
+        : p.container === 'trigger' || p.container === 'aerosol'
+        ? { pos: new THREE.Vector3(0.27, -0.22, -0.66), rot: new THREE.Euler(0.08, -0.12, 0) }
+        : { pos: new THREE.Vector3(0.26, -0.3, -0.66), rot: new THREE.Euler(0, -0.15, 0) };
     super(game, { label: `${p.brand} ${p.name}`, group: m.group, shape: m.shape, mass: 0.25 + p.capacity * 1.05, position, yaw, holdPose: pose });
     this.productId = productId;
     this.product = p;
@@ -447,7 +449,7 @@ export class Tool extends Item {
     const a = base.applyMatrix4(inv);
     const b = handWorld.clone().applyMatrix4(inv);
     const d = b.clone().sub(a);
-    const len = Math.min(this.handleLen, d.length());
+    const len = Math.min(2.6, Math.max(this.handleLen * 0.6, d.length()));
     d.setLength(len);
     this.stick.position.copy(a).addScaledVector(d, 0.5);
     this.stick.scale.set(1, len, 1);
