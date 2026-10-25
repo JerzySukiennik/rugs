@@ -29,8 +29,9 @@ import { showReport } from './ui/report.js';
 import { Shift } from './game/shift.js';
 import { Save } from './game/save.js';
 import { loadSettings, applySettings } from './game/settings.js';
-import { loadLook } from './player/avatar.js';
+import { loadLook, Avatar } from './player/avatar.js';
 import { Juice } from './game/juice.js';
+import { Clipboard } from './ui/orders.js';
 
 const _v = new THREE.Vector3();
 
@@ -402,8 +403,41 @@ function setupFlow(game) {
   engine.add(new SoundHooks(game), 996);
   game.juice = new Juice(game);
   engine.add(game.juice, 860);
+  game.flags = {};
+  game.clipboard = new Clipboard(game);
+  engine.add(game.clipboard, 991);
+  const wr0 = game.onRugWrapped;
+  game.onRugWrapped = (c, ev, price) => {
+    wr0?.(c, ev, price);
+    game.flags.wrapped = true;
+  };
+  const dp0 = game.onTruckDispatched;
+  game.onTruckDispatched = (t, inside) => {
+    dp0?.(t, inside);
+    if (inside.some((c) => c.wrapped)) game.flags.shipped = true;
+  };
   game.radio = new Radio(game, new THREE.Vector3(-8.6, 1.0, 1.85), Math.PI / 2);
+  let selfAv = null;
+  const buildSelf = (look) => {
+    selfAv?.dispose();
+    selfAv = new Avatar(look, { tag: false });
+    selfAv.parts.torso.visible = false;
+    for (const c of selfAv.parts.hips.children) if (c.isMesh) c.visible = false;
+    engine.scene.add(selfAv.object3d);
+  };
+  engine.add({
+    update(dt) {
+      if (!selfAv) return;
+      const show = game.mode !== 'menu' && !player.ragdolled && !player.inVehicle;
+      selfAv.object3d.visible = show;
+      if (!show) return;
+      const sp = Math.hypot(player.velocity.x, player.velocity.z);
+      const back = new THREE.Vector3(Math.sin(player.yaw), 0, Math.cos(player.yaw)).multiplyScalar(0.16);
+      selfAv.setPose({ pos: player.feet.clone().add(back), yaw: player.yaw, pitch: 0, crouch: player.crouch, speed: player.grounded ? sp : 0, dt });
+    },
+  }, 70);
   const applyLook = (look) => {
+    buildSelf(look);
     game.look = look;
     ragdoll.colors = { suit: look.suit, skin: look.skin, boot: look.boots };
     game.net?.setLook?.(look);
