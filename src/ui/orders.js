@@ -13,7 +13,7 @@ const CSS = `
 #rr-clip .nm{font-weight:700}
 #rr-clip .note{font-size:13px;opacity:.7;grid-column:1/-1}
 #rr-clip .st{font-family:var(--display);font-size:15px;padding:2px 9px;border:2px solid #1b1b1e;border-radius:9px;background:#ffd23f;align-self:start}
-#rr-guide{position:fixed;left:18px;top:96px;z-index:3;width:270px;padding:12px 14px;border:3px solid #1b1b1e;border-radius:16px;background:#fffaf0;box-shadow:5px 5px 0 rgba(27,27,30,.35);transform:rotate(-1deg);font:600 13.5px/1.35 var(--font);color:#1b1b1e;pointer-events:none;transition:opacity .3s}
+#rr-guide{position:fixed;left:18px;top:96px;z-index:3;width:236px;padding:10px 12px;border:3px solid #1b1b1e;border-radius:16px;background:#fffaf0;box-shadow:5px 5px 0 rgba(27,27,30,.35);transform:rotate(-1deg);font:600 12.5px/1.3 var(--font);color:#1b1b1e;pointer-events:none;transition:opacity .3s}
 #rr-guide h4{font-family:var(--display);font-weight:400;font-size:19px;margin:0 0 6px}
 #rr-guide li{list-style:none;display:flex;gap:7px;margin:4px 0;opacity:.45}
 #rr-guide li.cur{opacity:1}

@@ -121,3 +121,48 @@ away (for example when the hose is pulled taut).
 - Carpet agent: `src/carpet/**` + `dev/carpet.html`.
 - Fluids agent: `src/fluids/**` + `dev/fluids.html`.
 Agents only create/edit files inside their own folders and dev page. Anything else goes in their final report.
+
+## Networking (phase 2, `src/net/**`)
+
+Online co-op for 1-4 players, host-authoritative, WebRTC star (host ↔ each client). Solo is untouched until
+`game.net.host()` or `game.net.join()` is called; nothing loads Firebase before that.
+
+- `lobby.js`: Firebase JS SDK 10.12.2 (gstatic), anonymous auth, shared project `gzowos-games`. RTDB is used ONLY for
+  `rugRush/rooms/$id` (public list, heartbeat every 5 s, rooms without heartbeat for 30 s are hidden and deleted by
+  whoever lists them, host `onDisconnect` removes its room) and `rugRush/signal/$room/$uid` (SDP offer/answer and
+  trickled ICE, deleted as soon as the channels open). Rules: `Niepotrzebne/rtdb-block.json`, deployed only through
+  `tools/rtdb-rules.sh merge rugRush ...` + `deploy`.
+- `peer.js`: one `RTCPeerConnection` per client with `control` (reliable, ordered: JSON + binary, chunked at 16 KB,
+  sends are queued in order even when they wait for compression) and `state` (unordered, `maxRetransmits: 0`).
+  Google STUN only, no TURN: peers behind symmetric NAT / strict corporate firewalls cannot connect.
+- `host.js` (`HostSession`): every client is a `NetPlayer` on the host with a kinematic capsule moved by its own
+  character controller toward the client-reported pose (pushes carts/rolls like a local player, contact forces →
+  hit → the client is told to ragdoll), a `NetInput` fed by forwarded key/mouse edges and its own `Grab` instance,
+  so all item/rug/tool logic runs on the host exactly as in solo. Forklifts driven by a remote player read that
+  player's `NetInput`.
+- `client.js` (`ClientSession`): turns the local world into a mirror: chemistry, rug cloth simulation, trucks,
+  roller, economy and forklift logic are switched off, every replicated body becomes kinematic and follows
+  snapshots interpolated 100 ms in the past (host clock estimated from ping/pong). The local player still moves,
+  collides, trips and ragdolls locally and sends its pose at 30 Hz. The held tool/bottle/lance is predicted
+  locally (hand pose, spray stream, hose flow) so it never lags behind the camera; the host replays the same
+  input a few ms later.
+- Rug surfaces: chemistry only on the host. `surfaceSync.js` diffs the eight RGBA8 grids against a "sent" shadow in
+  16x16 tiles (5 Hz per rug, tiles that changed by < 6/255 are batched every 1.5 s) and ships byte deltas,
+  `deflate-raw` compressed, on `control`. A joining client gets each rug's full grids once.
+- Rug shape: core (rolled length, roll body pose, wrap) in every 20 Hz snapshot while it changes, cloth particles
+  quantized to u16 inside the rug's bounding box at 10 Hz only while the rug moves, plus a reliable settle frame.
+- Water: the GPU floor sim is never serialized. Inputs that do not come from particles (runoff, drips, wet-vac,
+  vacuum tank dumps, squeegee blades) are replayed on clients; streams (bottles) are mirrored as emitters; the
+  hose stream is driven by the replicated `flowing` flag. Client particles never deposit chemistry.
+- Lobby UI API (`game.net`, also `window.RR.net`): `listRooms(cb) → unsubscribe` (cb gets
+  `[{ id, name, hostName, players, max, version, compatible, full, age }]` on every change and every 2 s),
+  `await host({ name, look })` (room name defaults to "<look.name>'s warehouse"), `await join(roomId, { look })`
+  (resolves after the full world snapshot is applied, throws an `Error` with a readable message), `leave()`,
+  `isHost`, `isClient`, `mode`, `connected`, `roomId`, `slot`, `peers` (`[{ id, slot, name, look, ping }]`),
+  `look` / `setLook(look)` (persists `rugrush.look`), `on(evt, fn) → off` for `peer-join`, `peer-leave`,
+  `host-left`, `left`, `error`, `snapshot`, and `report()` (rates, rtt, host cost). A client world cannot turn back
+  into a solo world: after `host-left` or `leave()` as a client, reload the page.
+- Avatars: `src/net/avatarAdapter.js` loads `src/player/avatar.js` (`new Avatar(look)`, `object3d`,
+  `setPose({ pos, yaw, pitch, crouch, speed, holding, ragdollParts })`, `dispose()`); `pos` is the feet position,
+  `holding` is `{ kind: 'item' | 'heavy' | 'cloth', id } | null`, `ragdollParts` is `null` or
+  `[{ name, pos, quat }]` in `RAGDOLL_PARTS` order. Without that file it uses a coloured capsule with a name tag.

@@ -47,7 +47,11 @@ export class Shift {
 
   fixedUpdate(dt) {
     const g = this.game;
-    if (!this.running || g.mode === 'client') return;
+    if (g.mode === 'client') {
+      if (this.running && !this.ended) this.t += dt;
+      return;
+    }
+    if (!this.running) return;
     this.t += dt;
     if (g.hose?.flowing) this.stats.water += 0.7 * dt;
     this.fillAcc += dt;

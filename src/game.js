@@ -32,6 +32,7 @@ import { loadSettings, applySettings } from './game/settings.js';
 import { loadLook, Avatar } from './player/avatar.js';
 import { Juice } from './game/juice.js';
 import { Clipboard } from './ui/orders.js';
+import { Net } from './net/net.js';
 
 const _v = new THREE.Vector3();
 
@@ -200,7 +201,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
   game.spawnCart(new THREE.Vector3(14, 0, -4));
   if (params.has('forklift')) game.spawnForklift(new THREE.Vector3(12, 0, 0));
 
-  game.spawnRug = ({ type, size = 'M', story = null, seed = Math.floor(game.rnd() * 1e6), state = 'rolled', position, yaw = 0, wrapped = false, clean = false }) => {
+  game.spawnRug = ({ type, size = 'M', story = null, seed = Math.floor(game.rnd() * 1e6), state = 'rolled', position, yaw = 0, wrapped = false, clean = false, id = null }) => {
     if (!carpets) return null;
     const dims = typeof size === 'string' ? SIZES[size] : size;
     const surface = new CarpetSurface(dims.width, dims.length);
@@ -220,7 +221,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
       if (game.rnd() < 0.6) hud.toast(['Oops. It unrolled.', 'That rug had other plans.', 'Unrolled itself. Classic.'][Math.floor(game.rnd() * 3)]);
     };
     c.onImpact = (f) => game.onRugImpact?.(c, f);
-    entities.add(c);
+    entities.add(c, id);
     return c;
   };
 
@@ -303,7 +304,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
       if (carpets) {
         const f = player.feet;
         const push = player.ragdolled ? [] : [{ a: new THREE.Vector3(f.x, f.y + 0.3, f.z), b: new THREE.Vector3(f.x, f.y + 1.5, f.z), r: 0.3 }];
-        carpets.setPushers(push.concat(ragdoll.limbs()));
+        carpets.setPushers(push.concat(ragdoll.limbs(), game.net?.pushers() ?? []));
       }
       const sp = Math.hypot(player.velocity.x, player.velocity.z);
       if (!player.ragdolled && !player.inVehicle && !ragdoll.immune && player.grounded && player.sprinting && sp > 4.2) {
@@ -320,8 +321,9 @@ export async function createGame({ container, params = new URLSearchParams(locat
         }
         if (trip) ragdoll.trigger(new THREE.Vector3(), 'trip');
       }
+      const authority = !game.net?.isClient;
       trashAcc += dt;
-      if (trashAcc > 0.5) {
+      if (authority && trashAcc > 0.5) {
         trashAcc = 0;
         const z = game.trashZone;
         if (z) {
@@ -348,12 +350,15 @@ export async function createGame({ container, params = new URLSearchParams(locat
       }
       for (const d of game.dryers) for (const f of d.fans ?? []) f.rotation.z += 0.6;
       const hose = game.hose;
-      if (hose && grab.held?.item === hose.lance && hose.maxLen) {
-        const lt = hose.lance.body.translation();
-        const pv = hose.pivot;
-        if (Math.hypot(lt.x - pv.x, lt.y - pv.y, lt.z - pv.z) > hose.arm + hose.maxLen + 0.3) {
-          grab.release();
-          hud.toast('The hose is not that long.');
+      if (authority && hose?.maxLen) {
+        for (const g of [grab, ...(game.net?.remoteGrabs() ?? [])]) {
+          if (g.held?.item !== hose.lance) continue;
+          const lt = hose.lance.body.translation();
+          const pv = hose.pivot;
+          if (Math.hypot(lt.x - pv.x, lt.y - pv.y, lt.z - pv.z) > hose.arm + hose.maxLen + 0.3) {
+            g.release();
+            hud.toast('The hose is not that long.');
+          }
         }
       }
     },
@@ -362,12 +367,13 @@ export async function createGame({ container, params = new URLSearchParams(locat
         hud.hideCareLabel();
         game.eConsumed = true;
       }
-      for (const it of game.items) it.update?.(player, grab);
+      for (const it of game.items) it.update?.(it.holder ?? player, it.holder?.grab ?? grab);
     },
   };
   engine.add(logic, -60);
   engine.add({ update: () => hud.render(game) }, 990);
 
+  game.net = new Net(game);
   setupFlow(game);
 
   game.report = () => ({
@@ -381,6 +387,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
     roller: roller.state,
     carpetReport: carpets?.report?.(),
     fluidsReport: fluids?.report?.(),
+    net: game.net?.report(),
   });
   game.debug = makeDebug(game);
   engine.start();
@@ -513,7 +520,9 @@ function setupFlow(game) {
   game.leaveToMenu = () => {
     engine.paused = false;
     if (game.mode === 'solo' || game.mode === 'host') save.write();
+    const wasClient = game.mode === 'client';
     game.net?.leave?.();
+    if (wasClient) return location.reload();
     resetWorld();
     game.toMenu();
   };
@@ -538,6 +547,13 @@ function setupFlow(game) {
         input.lock();
       },
     });
+  };
+  game.closeReport = () => {
+    if (!reportEl) return;
+    reportEl.remove();
+    reportEl = null;
+    input.autoLock = true;
+    input.lock();
   };
   game.onShiftStart = (day) => hud.toast(`Day ${day} · new shift, new rugs`);
   const recWrapped = game.onRugWrapped;
@@ -564,6 +580,12 @@ function setupFlow(game) {
       cam.updateMatrixWorld();
     },
   }, 850);
+  game.net?.on?.('host-left', () => {
+    if (game.mode !== 'client') return;
+    menu.message('Host left', 'The host closed the warehouse. Back to the menu!', () => location.reload());
+    input.autoLock = false;
+    input.unlock();
+  });
   if (game.mode === 'menu') game.toMenu();
   else {
     shift.start();
