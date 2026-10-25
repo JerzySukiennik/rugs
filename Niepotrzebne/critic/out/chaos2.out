@@ -1,0 +1,6 @@
+[shot] chaos/01-thrown-roll.png
+[shot] chaos/02-roll-drop-player.png
+{"ev":["[1.0s] A rug rolled at 6,0.1,0 state rolled","[1.7s] A t+0.7s pos 0.41,0.05,-2.47 state rolled rolledLen 3.00","[2.4s] A t+1.4s pos -0.92,0.05,-2.19 state mixed rolledLen 2.97","[3.1s] A t+2.0999999999999996s pos -1.29,0.05,-1.95 state mixed rolledLen 2.97","[3.8s] A t+2.8s pos -1.55,0.05,-1.79 state mixed rolledLen 2.97","[4.5s] A t+3.5s pos -1.74,0.06,-1.67 state mixed rolledLen 2.97","[5.2s] A t+4.199999999999999s pos -1.66,0.05,-1.72 state mixed rolledLen 2.97","[8.9s] B shag roll dropped on player: trips 0, ragdolled=false, roll pos {\"x\":-2.999910593032837,\"y\":0.14498671889305115,\"z\":0.5966234803199768","[11.9s] B later: ragdolled=false, player feet -3,-0.02,-1","[14.6s] C sprint into flat rug: ragdolled=false trips total 0","[19.1s] D thrown shampoo at 3.31,0.3,-23.6 held=false","[19.1s] E items=40 nonfinite=0 carpets=5"],"shotReq":[],"done":true}
+elapsed 20
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)

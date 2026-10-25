@@ -123,12 +123,23 @@ export class SoundHooks {
     for (const d of g.dryers ?? []) this.loopOn(d, 'dryer_loop', !!d.on, d.pos, 0.4);
   }
 
-  hose() {
-    const h = this.game.hose;
+  hose(dt) {
+    const g = this.game;
+    const h = g.hose;
     if (!h) return;
     let pos = null;
     if (h.nozzle) pos = h.nozzle.getWorldPosition(_v).clone();
     this.loopOn('hose', 'hose_loop', !!h.flowing, pos, 0.6);
+    if (h.flowing && pos && this.every('splash', 0.32, dt)) {
+      const aim = g.grab?.aim?.point;
+      const at = aim && aim.distanceTo(pos) < 6 ? aim : pos.clone().add(new THREE.Vector3(0, -1.2, 0));
+      this.a.play('water_splash', { pos: at, volume: 0.28 });
+    }
+    const held = g.grab?.held;
+    const rug = held?.carpet;
+    const sp = Math.hypot(g.player.velocity.x, g.player.velocity.z);
+    const dragging = !!rug && sp > 0.4;
+    this.loopOn('drag', 'rug_drag_loop', dragging, g.player.feet.clone(), Math.min(0.55, sp * 0.22), dragging ? 0.85 + Math.min(0.3, sp * 0.1) : null);
   }
 
   footsteps(dt, p) {

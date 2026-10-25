@@ -273,7 +273,7 @@ export class NetPlayer {
     });
     if (this.inVehicle) return [];
     const f = this.feet;
-    return [{ a: new THREE.Vector3(f.x, f.y + 0.3, f.z), b: new THREE.Vector3(f.x, f.y + 1.5, f.z), r: 0.3 }];
+    return [{ a: new THREE.Vector3(f.x, f.y + 0.5, f.z), b: new THREE.Vector3(f.x, f.y + 1.5, f.z), r: 0.26 }];
   }
 
   renderAvatar(v) {

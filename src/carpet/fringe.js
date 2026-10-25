@@ -222,7 +222,7 @@ export class Fringe {
     this.labelGeo.computeVertexNormals();
   }
 
-  raycastLabel(origin, dir, maxDist) {
+  raycastLabel(origin, dir, maxDist, generous = false) {
     const P = this.labelPos;
     let best = null;
     const tri = (a, b, c) => {
@@ -251,7 +251,24 @@ export class Fringe {
       tri(a, a + 2, a + 1);
       tri(a + 1, a + 2, a + 3);
     }
-    return best;
+    if (best || !generous) return best;
+    let cx = 0, cy = 0, cz = 0;
+    const n = P.length / 3;
+    for (let i = 0; i < n; i++) {
+      cx += P[i * 3];
+      cy += P[i * 3 + 1];
+      cz += P[i * 3 + 2];
+    }
+    cx /= n; cy /= n; cz /= n;
+    const R = 0.1;
+    const ox = origin.x - cx, oy = origin.y - cy, oz = origin.z - cz;
+    const b = ox * dir.x + oy * dir.y + oz * dir.z;
+    const c = ox * ox + oy * oy + oz * oz - R * R;
+    const disc = b * b - c;
+    if (disc < 0) return null;
+    const t = -b - Math.sqrt(disc);
+    if (t < 0 || t > maxDist) return null;
+    return { distance: t, normal: new THREE.Vector3(-dir.x, -dir.y, -dir.z) };
   }
 
   dispose() {

@@ -113,6 +113,40 @@ export class Juice {
     };
   }
 
+  marker(text, color) {
+    const s = textSprite(text, color);
+    s.material.depthTest = false;
+    s.scale.set(1.9, 0.6, 1);
+    this.game.engine.scene.add(s);
+    return s;
+  }
+
+  update(dt) {
+    const g = this.game;
+    const t = g.trucks?.find((k) => k.role === 'in');
+    const out = g.trucks?.find((k) => k.role === 'out');
+    const playing = g.mode && g.mode !== 'menu';
+    const rugsIn = playing && t?.isOpen && t.carpetsInside().length > 0;
+    if (!this.inMark) this.inMark = this.marker('\u2193 RUGS', '#ffd23f');
+    this.inMark.visible = !!rugsIn;
+    const cam = g.engine.camera.position;
+    const fit = (m) => {
+      const k = Math.min(4, Math.max(1, m.position.distanceTo(cam) * 0.09));
+      m.scale.set(1.9 * k, 0.6 * k, 1);
+    };
+    if (rugsIn) {
+      this.inMark.position.copy(t.localToWorld(-3.4, 3.5 + Math.sin(performance.now() / 260) * 0.15, 0));
+      fit(this.inMark);
+    }
+    const wrapped = playing && (g.carpets?.list ?? []).some((c) => c.wrapped && !out?.carpetsInside().includes(c));
+    if (!this.outMark) this.outMark = this.marker('\u2193 LOAD', '#52c46b');
+    this.outMark.visible = !!(wrapped && out?.isOpen);
+    if (this.outMark.visible) {
+      this.outMark.position.copy(out.localToWorld(-3.4, 3.5 + Math.sin(performance.now() / 260 + 1) * 0.15, 0));
+      fit(this.outMark);
+    }
+  }
+
   lateUpdate(dt) {
     const cam = this.game.engine.camera;
     if (this.shakeAmt > 0.001 && this.game.mode !== 'menu') {

@@ -229,7 +229,7 @@ export class Tool extends Item {
     this.stick = m.stick;
     this.tipObj = m.tip;
     this.handleLen = m.handleLen;
-    this.reach = m.handleLen > 0 ? 2.5 : 1.7;
+    this.reach = m.handleLen > 0 ? 2.6 : 2.15;
     this.lift = (m.shape.y ?? 0.03) - (m.shape.cy ?? 0) + 0.004;
     this.beater = !!def.beater;
     this.dots = 1;
@@ -331,8 +331,10 @@ export class Tool extends Item {
 
   headUnder() {
     const g = this.game;
-    const head = this.worldOf(this.headObj, _w);
-    const up = _v.set(0, 1, 0).applyQuaternion(this.mesh.quaternion);
+    const t = this.body.translation(), r = this.body.rotation();
+    const q = _q.set(r.x, r.y, r.z, r.w);
+    const head = _w.copy(this.headObj.position).applyQuaternion(q).add(_x.set(t.x, t.y, t.z));
+    const up = _v.set(0, 1, 0).applyQuaternion(q);
     const from = head.clone().addScaledVector(up, 0.25);
     const ch = g.carpets?.raycast(from, up.clone().negate(), 0.45);
     return { head: head.clone(), up: up.clone(), carpetHit: ch ?? null };
@@ -383,17 +385,18 @@ export class Tool extends Item {
     } else if (k === 'brush') {
       if (c) for (const uv of uvs) g.chem.agitate(c, uv, this.def.radius, this.def, dirU, dirV, dt * share);
     } else if (k === 'squeegee') {
-      const side = _y.crossVectors(up, _z.set(0, 0, -1).applyQuaternion(this.mesh.quaternion)).normalize();
-      const a = head.clone().addScaledVector(side, this.def.width / 2);
-      const b = head.clone().addScaledVector(side, -this.def.width / 2);
+      const r = this.body.rotation();
+      const side = _y.crossVectors(up, _z.set(0, 0, -1).applyQuaternion(_q.set(r.x, r.y, r.z, r.w))).normalize();
+      const a = head.clone().addScaledVector(side, this.def.width / 2 + 0.08);
+      const b = head.clone().addScaledVector(side, -this.def.width / 2 - 0.08);
       if (c) {
         let lit = 0, dirt = 0, soap = 0;
         for (const uv of uvs) {
-          for (let o = -1; o <= 1; o++) {
-            const off = (o * this.def.width) / 3;
+          for (let o = -2; o <= 2; o++) {
+            const off = (o * this.def.width) / 5;
             const ou = uv.u + (off * side.dot(carpetHit.tangentU)) / c.width;
             const ov = uv.v + (off * side.dot(carpetHit.tangentV)) / c.length;
-            const r = g.chem.squeegee(c, { u: ou, v: ov }, this.def.width / 6, dirU, dirV);
+            const r = g.chem.squeegee(c, { u: ou, v: ov }, this.def.width / 7, dirU, dirV);
             lit += r.liters; dirt += r.dirt; soap += r.soap;
           }
         }

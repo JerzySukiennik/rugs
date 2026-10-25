@@ -4,7 +4,7 @@ import { CARPET_TYPES } from '../data/carpetTypes.js';
 export const SHIFT_SECONDS = 900;
 
 function freshStats() {
-  return { earned: 0, spent: 0, shipped: [], unrolls: 0, trips: 0, water: 0, product: 0, rugsIn: 0, ruined: 0 };
+  return { earned: 0, spent: 0, shipped: [], unrolls: 0, trips: 0, water: 0, productL: 0, productKg: 0, rugsIn: 0, ruined: 0 };
 }
 
 export class Shift {
@@ -60,7 +60,10 @@ export class Shift {
       for (const it of g.items) {
         if (it.fill === undefined) continue;
         const prev = this.fills.get(it);
-        if (prev !== undefined && it.fill < prev) this.stats.product += prev - it.fill;
+        if (prev !== undefined && it.fill < prev) {
+          if (it.product?.form === 'powder') this.stats.productKg += prev - it.fill;
+          else this.stats.productL += prev - it.fill;
+        }
         this.fills.set(it, it.fill);
       }
     }
@@ -79,12 +82,12 @@ export class Shift {
       let price;
       if (c.wrapped && c.finalPrice !== undefined) price = c.finalPrice;
       else if (ev?.ruined) price = -Math.round(CARPET_TYPES[c.type].basePrice * 1.5);
-      else price = Math.round(g.chem.price(c, ev) * 0.5);
-      unfinished.push({ name: c.displayName?.() ?? c.type, client: c.job?.client ?? '', grade: ev?.ruined ? 'F' : c.wrapped ? ev?.grade ?? '?' : 'Half done', price, ruined: !!ev?.ruined });
+      else price = 0;
+      unfinished.push({ name: c.displayName?.() ?? c.type, client: c.job?.client ?? '', grade: ev?.ruined ? 'F' : c.wrapped ? ev?.grade ?? '?' : 'Not done', price, ruined: !!ev?.ruined });
       g.removeCarpet(c);
     }
     const sumU = unfinished.reduce((a, b) => a + b.price, 0);
-    if (unfinished.length) g.economy.add(sumU, 'Clients collected unfinished rugs');
+    if (unfinished.length && sumU !== 0) g.economy.add(sumU, 'Clients collected unfinished rugs');
     const log = g.economy.log.slice(this.base.log);
     const s = this.stats;
     s.earned = log.filter((e) => e.amount > 0).reduce((a, e) => a + e.amount, 0);

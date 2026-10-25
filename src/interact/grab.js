@@ -41,7 +41,7 @@ export class Grab {
     return this.held?.body ?? null;
   }
 
-  raycastAll(origin, dir, max = REACH) {
+  raycastAll(origin, dir, max = REACH, picks = false) {
     const exclude = this.heldBody();
     const hit = this.physics.raycast(origin, dir, max, {
       groupsMask: groups(GROUP.PLAYER, GROUP.ALL & ~GROUP.PLAYER & ~GROUP.HELD & ~GROUP.TRIGGER),
@@ -55,6 +55,10 @@ export class Grab {
     if (best?.owner?.kind === 'carpet' && !best.carpetHit && this.carpets) {
       const c2 = best.owner.raycast?.(origin, dir, max);
       if (c2) best.carpetHit = { ...c2, carpet: best.owner };
+    }
+    if (picks && this.extraPick) {
+      const ex = this.extraPick(origin, dir, best ? best.distance : max, this);
+      if (ex) best = ex;
     }
     return best;
   }
@@ -96,7 +100,7 @@ export class Grab {
       this.lmb = false;
       return;
     }
-    this.aim = this.raycastAll(p.eye, p.forward, REACH);
+    this.aim = this.raycastAll(p.eye, p.forward, REACH, true);
     if (this.aimFix) this.aim = this.aimFix(this.aim);
     if (!inp.locked) return;
     if (inp.wheel) this.holdDist = Math.max(0.9, Math.min(2.3, this.holdDist - inp.wheel * 0.15));
@@ -340,12 +344,13 @@ export class Grab {
 
   driveCloth(h, dt) {
     const p = this.player;
-    const target = _c.copy(p.eye).addScaledVector(p.forward, this.holdDist);
-    target.y -= 0.25;
-    h.handle.setTarget(target, 0.6);
+    const target = _c.copy(p.eye).addScaledVector(p.forward, Math.min(this.holdDist, 1.1));
+    target.y = Math.max(target.y - 0.25, p.feet.y + 0.75);
+    h.handle.setTarget(target, 0.9);
     const pt = h.handle.point?.();
-    if (pt && pt.distanceTo(p.eye) > 3.2) return this.release();
+    const lag = pt ? pt.distanceTo(target) : 0;
+    if (lag > 3.0) return this.release();
     const m = h.carpet.mass ?? 10;
-    this.player.speedMul = Math.max(0.4, 1 - m / 90);
+    this.player.speedMul = Math.max(0.3, 1 - m / 35) * (lag > 0.6 ? Math.max(0.15, 1 - (lag - 0.6) * 0.8) : 1);
   }
 }

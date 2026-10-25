@@ -27,7 +27,7 @@ export const FIBERS = {
   },
   sisal: {
     fiber: '100% SISAL', waterTol: 0.12, alkTol: 0.1, oxTol: 0, enzTol: 0.4, chlorTol: 0, solvTol: 0.6, acidTol: 0.5,
-    ironMax: 0, beater: false, stiff: true, rake: false, rubber: true, bleedAlk: 0, bleedWet: 0, browning: 1, felting: 0, waterMarks: 0, dryRate: 0.9,
+    ironMax: 0, beater: false, stiff: true, rake: false, rubber: true, bleedAlk: 0, bleedWet: 0, browning: 1, felting: 0, waterMarks: 1.5, dryRate: 0.9,
     care: { wash: { no: true }, bleach: 'none', iron: 0, dry: 'A', notes: ['NATURAL FIBRE', 'KEEP DRY', 'DRY COMPOUND ONLY'] },
   },
   kilim: {

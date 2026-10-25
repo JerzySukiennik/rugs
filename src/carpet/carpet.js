@@ -1869,7 +1869,7 @@ export class Carpet {
       const rh = this.raycastRoll(origin, dir, best ? best.distance : maxDist);
       if (rh) best = rh;
     }
-    const lh = this.fringe.raycastLabel(origin, dir, best ? best.distance : maxDist);
+    const lh = this.fringe.raycastLabel(origin, dir, best ? best.distance + (maxDist > 1 ? 0.2 : 0) : maxDist, maxDist > 1);
     if (lh) {
       const p = new THREE.Vector3().copy(origin).addScaledVector(dir, lh.distance);
       best = { distance: lh.distance, point: p, normal: lh.normal, uv: { u: 0.08, v: 1 }, tangentU: new THREE.Vector3(1, 0, 0), tangentV: new THREE.Vector3(0, 0, 1), part: 'label' };

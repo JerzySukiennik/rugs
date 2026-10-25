@@ -1,0 +1,41 @@
+[1s] rug in bay: cut kids (Nowak household) state=flat
+[1s] SNAP start: clean 0 wet 0 residue 0 dmg 0 grade E dry true per {"dust":0.13,"mud":0.006,"sticky":0.038,"paint":0.008}
+[1s] soils on arrival: [["dust",0.13],["mud",0.0061],["sticky",0.0377],["gum",0.0024],["paint",0.0076]]
+[2s] label open=false aim part=undefined
+[3s] label closed=true
+[shot] full/05-care-label.png
+[20s] SNAP after vacuum: clean 0.409 wet 0 residue 0 dmg 0 grade E dry true per {"dust":0.037,"mud":0.006,"sticky":0.038,"paint":0.008}
+[shot] full/06-vacuumed.png
+[shot] full/07-spot-treated.png
+[44s] SNAP after shampoo+scrub: clean 0.423 wet 0 residue 0.593 dmg 0 grade E dry true per {"dust":0.039,"mud":0.006,"sticky":0.035,"paint":0.008}
+[shot] full/08-shampoo-scrub.png
+[60s] SNAP after rinse: clean 0.423 wet 0.223 residue 0.233 dmg 0 grade E dry false per {"dust":0.039,"mud":0.006,"sticky":0.035,"paint":0.008}
+[shot] full/09-rinsed.png
+[69s] SNAP after squeegee: clean 0.423 wet 0.142 residue 0.219 dmg 0 grade E dry false per {"dust":0.039,"mud":0.006,"sticky":0.035,"paint":0.008}
+[69s] blowers available: 2
+[75s] dry check: wet 0.135
+[87s] dry check: wet 0.122
+[99s] dry check: wet 0.109
+[111s] dry check: wet 0.098
+[123s] dry check: wet 0.087
+[135s] dry check: wet 0.077
+[147s] dry check: wet 0.070
+[159s] dry check: wet 0.064
+[171s] dry check: wet 0.058
+[183s] dry check: wet 0.052
+[195s] dry check: wet 0.047
+[207s] dry check: wet 0.042
+[219s] dry check: wet 0.037
+[228s] dryEnough=true after 157s
+[228s] SNAP after drying: clean 0.22 wet 0.034 residue 0.218 dmg 0 grade E dry true per {"dust":0.039,"mud":0.006,"sticky":0.035,"paint":0.008,"mold":0.02}
+[shot] full/10-drying.png
+[runner] evaluate error page.evaluate: Target page, context or browser has been closed
+RESULT {"vacuum":17.7,"shampoo and scrub":23.9,"rinse":15.3,"squeegee":9.6,"drying":158.4}
+done flag false elapsed 606 s
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[PAGEERROR] Cannot read properties of null (reading 'setTranslation')
+TypeError: Cannot read properties of null (reading 'setTranslation')
+    at eval (eval at <anonymous> (eval at evaluate (:303:30)), <anonymous>:213:14)
+    at timeIt (eval at <anonymous> (eval at evaluate (:303:30)), <anonymous>:51:87)
+    at eval (eval at <anonymous> (eval at evaluate (:303:30)), <anonymous>:212:9)

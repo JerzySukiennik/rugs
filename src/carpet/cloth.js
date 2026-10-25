@@ -88,6 +88,9 @@ export class Cloth {
     const att = this.attach;
     let rx = 0, ry = 0, rz = 0;
     let maxMove = 0;
+    const held = this.heldMask ?? (this.heldMask = new Uint8Array(n));
+    held.fill(0);
+    for (const hd of handles) if (hd.target) for (const i of hd.idx) held[i] = 1;
     for (let s = 0; s < ns; s++) {
       for (let i = 0; i < n; i++) {
         if (!active[i]) continue;
@@ -243,7 +246,7 @@ export class Cloth {
           if (push > pen) { pen = push; nxv = 0; nyv = 1; nzv = 0; svx = 0; svy = 0; svz = 0; }
           touched = touched || 1;
         }
-        if (touched) {
+        if (touched && !held[i]) {
           let dx = X - p[k] - svx * h, dy = Y - p[k + 1] - svy * h, dz = Z - p[k + 2] - svz * h;
           const dn = dx * nxv + dy * nyv + dz * nzv;
           dx -= nxv * dn; dy -= nyv * dn; dz -= nzv * dn;

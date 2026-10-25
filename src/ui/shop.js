@@ -67,6 +67,7 @@ export class Economy {
       else if (d.kind === 'cart') this.game.spawnCart?.(p);
     });
     this.game.hud?.toast(`Courier dropped ${due.length} item${due.length > 1 ? 's' : ''} at the side door.`);
+    this.game.audio?.play('cardboard_drop', { pos: new THREE.Vector3(base.x, 0.5, base.z), volume: 0.8 });
   }
 }
 

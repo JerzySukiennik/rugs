@@ -1,0 +1,7 @@
+[shot] misuse/01-silk-bleach.png
+[shot] misuse/04-silk-iron.png
+[shot] misuse/03-sisal-wet.png
+{"ev":["[0.9s] A start: chlor=0 gel=0 bleach=0","[1.2s] A held=KLORIN Thick Chlorine Bleach fill=1 mode=pour tilt=0.00","[5.6s] A after 4 s pour: klorin fill=0.727 tilt=0.25 chlor sum=0.1569 max=6 gel sum=0.0908 bleach sum=0 max bleach=0","[7.7s] A +2 s: bleach sum=0 max=0 damage eval=0.0000 grade=A","[9.2s] B iron dots 1 -> 3","[13.7s] B after iron 4 s: burn sum=0.0122 max=2.667 eval damage=0.0183 grade=A","[18.5s] C sisal after 3 s hose: water sum=0.0064 max=0.999 shrink max=0 eval damage=0.0000","[23.6s] D persian after 3 s hose: water sum=0 bleed max=0 eval damage=0.0000 grade=A+"],"shotReq":[],"done":true}
+elapsed 25
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[error] Failed to load resource: the server responded with a status of 404 (File not found)

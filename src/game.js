@@ -76,7 +76,8 @@ export async function createGame({ container, params = new URLSearchParams(locat
     const low = params.has('lowres');
     game.fluids = new fluidsMod.Fluids(engine, physics, low
       ? { entities, simRes: 192, rippleRes: 256, meshSegments: 128, reflections: false, maxParticles: 2048, testsPerStep: 96 }
-      : { entities });
+      : { entities, testsPerStep: 128 });
+    game.fluids.floor.readEvery = 30;
     engine.add(game.fluids, -20);
   }
   const carpets = game.carpets, fluids = game.fluids;
@@ -96,15 +97,25 @@ export async function createGame({ container, params = new URLSearchParams(locat
       const r = hit.receiver;
       if (r?.carpet && !r.carpet.wrapped) chem.deposit(r.carpet, r.uv, hit.kind, hit.productId, hit.amount);
     };
+    chem.onHint = (msg, carpet, bad) => hud.toast(msg, !!bad, 4200);
     chem.onRunoff = (carpet, liters, dirt, soap, u, v) => {
       const w = carpet.uvToWorld?.(u, v);
       if (!w) return;
       const p = w.point;
-      if (p.y > 0.35) fluids.drip?.(p, liters / 0.1);
+      if (p.y > 0.35) {
+        fluids.drip?.(p, liters / 0.1);
+        if (Math.random() < 0.25) game.audio?.play('drip', { pos: p, volume: 0.35 });
+      }
       else fluids.addWater(p.x, p.z, liters, { dirt: Math.min(1, dirt), soap: Math.min(1, soap), radius: 0.3 });
     };
     game.hose = fluids.createHose(LAYOUT.hoseBoom, { rate: 0.7 });
-    if (game.hose?.stream) Object.assign(game.hose.stream, { size: 0.009, spread: 0.03, pps: 300 });
+    if (game.hose?.stream) Object.assign(game.hose.stream, { size: 0.0105, spread: 0.03, pps: 210 });
+    if (game.hose?.body) {
+      game.hose.body.setLinearDamping(1.6);
+      game.hose.body.setAngularDamping(4.5);
+      game.hose.boomDamp = 2.8;
+      game.hose.capFree = 55;
+    }
     const lance = game.hose?.lance;
     if (lance) {
       const aq = new THREE.Quaternion(), am = new THREE.Matrix4(), ad = new THREE.Vector3();
@@ -112,6 +123,9 @@ export async function createGame({ container, params = new URLSearchParams(locat
       lance.holdTarget = (p, grab, outPos, outQuat) => {
         outPos.copy(lance.holdPose.pos).applyMatrix4(p.camera.matrixWorld);
         aimDir(game, p, outPos, 4, ad);
+        ad.lerp(p.forward, 0.35).normalize();
+        lance.smoothDir = (lance.smoothDir ?? ad.clone()).lerp(ad, 0.18).normalize();
+        ad.copy(lance.smoothDir);
         am.lookAt(outPos, ad.clone().add(outPos), new THREE.Vector3(0, 1, 0));
         aq.setFromRotationMatrix(am);
         outQuat.copy(aq);
@@ -131,7 +145,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
       const r = b.body.rotation();
       const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(new THREE.Quaternion(r.x, r.y, r.z, r.w));
       if (dir.y < -0.5 || dir.y > 0.5) continue;
-      sources.push({ pos: new THREE.Vector3(t.x, t.y + 0.2, t.z), dir, range: 4.5, cos: Math.cos(0.6), power: 4 });
+      sources.push({ pos: new THREE.Vector3(t.x, t.y + 0.2, t.z), dir, range: 5.5, cos: Math.cos(0.75), power: 9, isBlower: true });
     }
     for (const d of game.dryers) if (d.on) sources.push(d);
     for (let j = 0; j < G[1]; j++) for (let i = 0; i < G[0]; i++) {
@@ -145,7 +159,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
         const dist = d.length();
         if (dist > s.range || dist < 1e-3) continue;
         if (d.divideScalar(dist).dot(s.dir) < s.cos) continue;
-        b += s.power * (1 - dist / s.range);
+        b += s.power * (s.isBlower ? 1 : 1.8) * (1 - dist / s.range);
       }
       vals[j * G[0] + i] = b;
     }
@@ -177,6 +191,31 @@ export async function createGame({ container, params = new URLSearchParams(locat
   });
   game.grab = grab;
   engine.add(grab, -40);
+  const pickA = new THREE.Vector3(), pickB = new THREE.Vector3(), pickUp = new THREE.Vector3(), pickQ = new THREE.Quaternion();
+  grab.extraPick = (origin, dir, max, who) => {
+    let best = null;
+    for (const it of game.items) {
+      if (!it.stick || !it.handleLen || it.held || it.holder) continue;
+      const t = it.body.translation(), r = it.body.rotation();
+      pickA.set(t.x, t.y, t.z);
+      pickUp.set(0, 1, 0).applyQuaternion(pickQ.set(r.x, r.y, r.z, r.w));
+      pickB.copy(pickA).addScaledVector(pickUp, it.handleLen);
+      const u = pickB.clone().sub(pickA);
+      const w0 = origin.clone().sub(pickA);
+      const a = dir.dot(dir), b = dir.dot(u), c = u.dot(u), d = dir.dot(w0), e = u.dot(w0);
+      const den = a * c - b * b;
+      let sc = den > 1e-8 ? (b * e - c * d) / den : 0;
+      let tc = den > 1e-8 ? (a * e - b * d) / den : 0;
+      tc = Math.max(0, Math.min(1, tc));
+      sc = Math.max(0, (tc * b - d) / a);
+      if (sc > max) continue;
+      const pr = origin.clone().addScaledVector(dir, sc);
+      const ps = pickA.clone().addScaledVector(u, tc);
+      if (pr.distanceTo(ps) > 0.07) continue;
+      if (!best || sc < best.distance) best = { distance: sc, point: pr, normal: dir.clone().negate(), owner: it, carpetHit: null, collider: null };
+    }
+    return best;
+  };
 
   buildStations(game);
   const roller = new Roller(game, { x: LAYOUT.roller.x, z: LAYOUT.roller.z, yaw: 0 });
@@ -303,7 +342,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
       game.eConsumed = false;
       if (carpets) {
         const f = player.feet;
-        const push = player.ragdolled ? [] : [{ a: new THREE.Vector3(f.x, f.y + 0.3, f.z), b: new THREE.Vector3(f.x, f.y + 1.5, f.z), r: 0.3 }];
+        const push = player.ragdolled ? [] : [{ a: new THREE.Vector3(f.x, f.y + 0.5, f.z), b: new THREE.Vector3(f.x, f.y + 1.5, f.z), r: 0.26 }];
         carpets.setPushers(push.concat(ragdoll.limbs(), game.net?.pushers() ?? []));
       }
       const sp = Math.hypot(player.velocity.x, player.velocity.z);
@@ -332,6 +371,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
             if (it.held) continue;
             const t = it.body.translation();
             if (inZ(t)) {
+              game.audio?.play('trash_drop', { pos: new THREE.Vector3(t.x, t.y, t.z), volume: 0.7 });
               it.dispose();
               entities.map.delete(it.id);
               game.items.splice(game.items.indexOf(it), 1);
@@ -467,8 +507,9 @@ function setupFlow(game) {
     }
     reportEl?.remove();
     reportEl = null;
-    player.teleport(new THREE.Vector3(LAYOUT.spawn.x, 0, LAYOUT.spawn.z), 0);
-    player.pitch = -0.1;
+    const dk = LAYOUT.inboundDock;
+    player.teleport(new THREE.Vector3(LAYOUT.spawn.x, 0, LAYOUT.spawn.z), Math.atan2(-(dk.x - LAYOUT.spawn.x), -(dk.z - LAYOUT.spawn.z)));
+    player.pitch = -0.05;
   };
   game.resetWorld = resetWorld;
   const enterPlay = (mode) => {
@@ -580,12 +621,46 @@ function setupFlow(game) {
       cam.updateMatrixWorld();
     },
   }, 850);
+  game.net?.on?.('peer-join', (p) => {
+    game.audio?.ui('ui_join', 0.8);
+    hud.toast(`${p?.name ?? 'Someone'} joined the warehouse`);
+  });
+  game.net?.on?.('peer-leave', (p) => {
+    game.audio?.ui('ui_leave', 0.7);
+    hud.toast(`${p?.name ?? 'Someone'} left`);
+  });
   game.net?.on?.('host-left', () => {
     if (game.mode !== 'client') return;
     menu.message('Host left', 'The host closed the warehouse. Back to the menu!', () => location.reload());
     input.autoLock = false;
     input.unlock();
   });
+  let lowT = 0, highT = 0, cool = 0;
+  engine.add({
+    update(dt) {
+      if (game.mode === 'menu' || engine.paused || dt <= 0) return;
+      const r = engine.renderer;
+      const q = game.settings.quality;
+      const cap = q === 'low' ? 1 : q === 'medium' ? Math.min(devicePixelRatio, 1.25) : Math.min(devicePixelRatio, 1.5);
+      const floor = Math.min(cap, 0.85);
+      cool -= dt;
+      const fps = engine.fps;
+      lowT = fps < 53 ? lowT + dt : 0;
+      highT = fps > 58.5 && engine.frameMs < 9 ? highT + dt : 0;
+      const pr = r.getPixelRatio();
+      if (cool <= 0 && lowT > 1.5 && pr > floor + 0.01) {
+        r.setPixelRatio(Math.max(floor, pr - 0.2));
+        engine.onResize();
+        cool = 4;
+        lowT = 0;
+      } else if (cool <= 0 && highT > 8 && pr < cap - 0.01) {
+        r.setPixelRatio(Math.min(cap, pr + 0.1));
+        engine.onResize();
+        cool = 6;
+        highT = 0;
+      }
+    },
+  }, 997);
   if (game.mode === 'menu') game.toMenu();
   else {
     shift.start();

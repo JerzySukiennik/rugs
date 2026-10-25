@@ -1597,24 +1597,24 @@ function buildTool(id, td) {
     head.push(def(`t:${id}:head`, 'opaque', K.merge(parts)));
     shape = { type: 'box', x: 0.1, y: 0.045, z: 0.04, cy: 0.045 };
   } else if (k === 'squeegee') {
-    const frame = K.roundedBox(0.56, 0.026, 0.03, 0.006, S(2, 1));
+    const frame = K.roundedBox(1.12, 0.026, 0.03, 0.006, S(2, 1));
     frame.translate(0, 0.052, 0);
-    const bladeA = K.box(0.55, 0.045, 0.005, { y: 0.0225, z: -0.006 });
-    const bladeB = K.box(0.55, 0.045, 0.005, { y: 0.0225, z: 0.006 });
+    const bladeA = K.box(1.1, 0.045, 0.005, { y: 0.0225, z: -0.006 });
+    const bladeB = K.box(1.1, 0.045, 0.005, { y: 0.0225, z: 0.006 });
     const socket = K.cyl(0.018, 0.022, 0.05, S(18));
     socket.rotateX(-0.4);
     socket.translate(0, 0.075, 0.01);
     const caps = [];
     for (const s of [-1, 1]) {
       const c = K.roundedBox(0.014, 0.036, 0.036, 0.006, S(1, 1));
-      c.translate(s * 0.283, 0.05, 0);
+      c.translate(s * 0.563, 0.05, 0);
       caps.push(K.paint(c, '#1b1c1e', { r: 0.6 }));
     }
     head.push(def('t:squeegee:head', 'opaque', K.merge([K.paint(frame, '#f2c230', { r: 0.35 }), K.paint(bladeA, '#141414', { r: 0.85 }), K.paint(bladeB, '#141414', { r: 0.85 }), K.paint(socket, '#f2c230', { r: 0.35 }), ...caps])));
     extra.push({ key: gripBlack(), at: 'top', offset: 0 });
     stick = aluStick();
     handleLen = 1.3;
-    shape = { type: 'box', x: 0.28, y: 0.035, z: 0.02, cy: 0.035 };
+    shape = { type: 'box', x: 0.56, y: 0.035, z: 0.02, cy: 0.035 };
   } else if (k === 'scraper') {
     const blade = K.extrude([
       [-0.022, -0.1],

@@ -9,7 +9,7 @@ export function showReport(game, day, s, { canContinue = true, onNext }) {
   const money = (v) => `${v < 0 ? '−' : ''}$${Math.abs(Math.round(v)).toLocaleString('en-US')}`;
   const scr = el('div', { class: 'rr-screen dim rr-ui' });
   const rows = el('div', { class: 'rr-col', style: 'gap:8px;margin:10px 0 4px' });
-  const all = [...s.shipped.map((r) => ({ ...r, kind: 'Shipped' })), ...(s.unfinished ?? []).map((r) => ({ ...r, kind: 'Picked up as is' }))];
+  const all = [...s.shipped.map((r) => ({ ...r, kind: 'Shipped' })), ...(s.unfinished ?? []).map((r) => ({ ...r, kind: r.price < 0 ? 'Ruined, you pay' : 'Not finished, no pay' }))];
   if (!all.length) rows.append(el('div', { class: 'rr-card', style: 'justify-content:center' }, 'No rugs went out today. The trucks are judging you.'));
   all.forEach((r, i) => {
     const stamp = el('div', { style: `font-family:var(--display);font-size:${r.grade.length > 2 ? 15 : 30}px;width:62px;height:52px;display:flex;align-items:center;justify-content:center;border:3px solid ${GRADE_COLORS[r.grade] ?? 'var(--ink)'};color:${GRADE_COLORS[r.grade] ?? 'var(--ink)'};border-radius:12px;transform:rotate(${(i % 2 ? 1 : -1) * 8}deg) scale(2.4);opacity:0;transition:transform .28s cubic-bezier(.2,1.8,.4,1),opacity .2s;background:#fff;flex:none` }, r.grade);
@@ -32,7 +32,8 @@ export function showReport(game, day, s, { canContinue = true, onNext }) {
     fact('\u{1F300}', `${s.unrolls} rug${s.unrolls === 1 ? '' : 's'} unrolled by accident`),
     fact('\u{1F915}', `${s.trips} faceplant${s.trips === 1 ? '' : 's'}`),
     fact('\u{1F4A7}', `${Math.round(s.water)} L of water`),
-    fact('\u{1F9F4}', `${s.product.toFixed(1)} L/kg of product`),
+    fact('\u{1F9F4}', `${(s.productL ?? 0).toFixed(1)} L of liquids`),
+    fact('\u{1F9C2}', `${(s.productKg ?? 0).toFixed(2)} kg of powder`),
   );
   const net = s.earned - s.spent;
   const next = canContinue ? button('Next shift', { cls: 'green big', sfx, onClick: () => { scr.remove(); onNext?.(); } }) : el('div', { class: 'rr-sticker' }, 'Waiting for the host…');

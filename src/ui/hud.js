@@ -153,7 +153,8 @@ export class Hud {
         if (c.job?.note && c.state !== 'rolled') html += `<span class="insp">${c.job.client}: “${c.job.note}”</span>`;
         if (ev.v) {
           const v = ev.v;
-          html += `<span class="insp">Clean ${Math.round(v.clean * 100)}% · Wet ${Math.round(v.wet * 100)}% · ${v.damage > 0.01 ? `Damage ${Math.round(v.damage * 100)}%` : 'No damage'}${v.residue > 0.05 ? ' · Residue: rinse it' : ''}</span>`;
+          const dry = v.dryEnough ? 'Dry enough to roll \u2713' : v.wet > 0.02 ? `Wet ${Math.round(v.wet * 100)}% (roll at <12%)` : 'Dry';
+          html += `<span class="insp">Clean ${Math.round(v.clean * 100)}% · ${dry} · ${v.damage > 0.01 || v.damagePeak > 0.005 ? `Damage ${Math.round(Math.max(v.damage, v.damagePeak) * 100)}%` : 'No damage'}${v.residue > 0.05 ? ' · Soap left: rinse it' : ''}</span>`;
           const left = Object.entries(v.per).filter(([k, x]) => x > 0.004 && k !== 'urine').sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k]) => DIRT_NAMES[k]);
           if (left.length) html += `<span class="insp">Still dirty: ${left.join(', ')}</span>`;
         }
