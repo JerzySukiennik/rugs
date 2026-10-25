@@ -21,6 +21,16 @@ import { Truck } from './logistics/truck.js';
 import { Roller } from './logistics/roller.js';
 import { Cart, Forklift } from './logistics/vehicles.js';
 import { aimDir } from './tools/items.js';
+import { Audio } from './audio/audio.js';
+import { SoundHooks } from './audio/hooks.js';
+import { Radio } from './audio/radio.js';
+import { Menu } from './ui/menu.js';
+import { showReport } from './ui/report.js';
+import { Shift } from './game/shift.js';
+import { Save } from './game/save.js';
+import { loadSettings, applySettings } from './game/settings.js';
+import { loadLook } from './player/avatar.js';
+import { Juice } from './game/juice.js';
 
 const _v = new THREE.Vector3();
 
@@ -48,6 +58,8 @@ export async function createGame({ container, params = new URLSearchParams(locat
   buildBaseplate(engine, physics);
   const hud = new Hud();
   game.hud = hud;
+  game.audio = new Audio();
+  game.mode = params.has('test') ? 'solo' : 'menu';
   const chem = new Chemistry();
   game.chem = chem;
   engine.add(chem, -25);
@@ -202,6 +214,8 @@ export async function createGame({ container, params = new URLSearchParams(locat
     c.setLabelTexture?.(careLabelTexture(type, { width: dims.width, length: dims.length, client: job.client, seed }));
     c.onUnrollStart = () => {
       game.stats.unrolls++;
+      const up = c.body?.translation?.();
+      game.audio?.play('rug_unroll', { pos: up ? new THREE.Vector3(up.x, up.y, up.z) : null, volume: 0.7 });
       if (game.rnd() < 0.6) hud.toast(['Oops. It unrolled.', 'That rug had other plans.', 'Unrolled itself. Classic.'][Math.floor(game.rnd() * 3)]);
     };
     c.onImpact = (f) => game.onRugImpact?.(c, f);
@@ -353,9 +367,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
   engine.add(logic, -60);
   engine.add({ update: () => hud.render(game) }, 990);
 
-  hud.buildStart(() => input.lock());
-  input.onLockChange = (locked) => hud.setStartVisible(!locked && !shop.isOpen && !hud.labelOpen);
-  if (params.has('test')) hud.setStartVisible(false);
+  setupFlow(game);
 
   game.report = () => ({
     fps: +engine.fps.toFixed(1),
@@ -373,6 +385,156 @@ export async function createGame({ container, params = new URLSearchParams(locat
   engine.start();
   game.ready = true;
   return game;
+}
+
+function setupFlow(game) {
+  const { engine, input, player, hud, shop, ragdoll, trucks } = game;
+  game.settings = loadSettings();
+  game.look = loadLook();
+  const shift = new Shift(game);
+  game.shift = shift;
+  engine.add(shift, 400);
+  const save = new Save(game);
+  game.save = save;
+  save.captureSlots();
+  const menu = new Menu(game);
+  game.menu = menu;
+  engine.add(new SoundHooks(game), 996);
+  game.juice = new Juice(game);
+  engine.add(game.juice, 860);
+  game.radio = new Radio(game, new THREE.Vector3(-8.6, 1.0, 1.85), Math.PI / 2);
+  const applyLook = (look) => {
+    game.look = look;
+    ragdoll.colors = { suit: look.suit, skin: look.skin, boot: look.boots };
+    game.net?.setLook?.(look);
+  };
+  applyLook(game.look);
+  game.onLookChanged = applyLook;
+  applySettings(game, game.settings);
+  let reportEl = null;
+  const resetWorld = () => {
+    if (game.grab.held) game.grab.release();
+    for (const c of [...(game.carpets?.list ?? [])]) game.removeCarpet(c);
+    for (const t of trucks) {
+      t.state = 'away';
+      t.wait = t.role === 'in' ? 2 : 7;
+      t.door = 0;
+      t.ramp = 0;
+      t.deployRamp?.(false);
+      t.visible(false);
+      t.trips = 0;
+    }
+    reportEl?.remove();
+    reportEl = null;
+    player.teleport(new THREE.Vector3(LAYOUT.spawn.x, 0, LAYOUT.spawn.z), 0);
+    player.pitch = -0.1;
+  };
+  game.resetWorld = resetWorld;
+  const enterPlay = (mode) => {
+    game.mode = mode;
+    menu.hide();
+    player.frozen = false;
+    input.autoLock = true;
+    input.lock();
+    game.audio.stopMusic();
+    hud.toast(`Day ${shift.day} · the trucks are on their way`);
+  };
+  const loadProgress = () => {
+    const data = save.peek();
+    if (data) save.restore(data);
+    else {
+      shift.day = 1;
+      game.economy.money = 150;
+    }
+  };
+  game.startSolo = () => {
+    resetWorld();
+    loadProgress();
+    shift.start();
+    enterPlay('solo');
+  };
+  game.startHost = async (name) => {
+    if (!game.net) throw new Error('Multiplayer is not available.');
+    resetWorld();
+    loadProgress();
+    await game.net.host({ name, look: game.look });
+    shift.start();
+    enterPlay('host');
+  };
+  game.joinRoom = async (id) => {
+    if (!game.net) throw new Error('Multiplayer is not available.');
+    resetWorld();
+    await game.net.join(id, { look: game.look });
+    shift.start();
+    enterPlay('client');
+  };
+  game.toMenu = () => {
+    game.mode = 'menu';
+    player.frozen = true;
+    input.autoLock = false;
+    input.unlock();
+    menu.title();
+    game.audio.music('menu_loop');
+  };
+  game.leaveToMenu = () => {
+    engine.paused = false;
+    if (game.mode === 'solo' || game.mode === 'host') save.write();
+    game.net?.leave?.();
+    resetWorld();
+    game.toMenu();
+  };
+  game.resume = () => {
+    engine.paused = false;
+    menu.hide();
+    input.autoLock = true;
+    input.lock();
+  };
+  game.onShiftEnd = (day, s) => {
+    if (game.grab.held) game.grab.release();
+    input.autoLock = false;
+    input.unlock();
+    if (game.mode !== 'client') save.write();
+    reportEl = showReport(game, day, s, {
+      canContinue: game.mode !== 'client',
+      onNext: () => {
+        reportEl = null;
+        shift.next();
+        save.write();
+        input.autoLock = true;
+        input.lock();
+      },
+    });
+  };
+  game.onShiftStart = (day) => hud.toast(`Day ${day} · new shift, new rugs`);
+  const recWrapped = game.onRugWrapped;
+  game.onRugWrapped = (c, ev, price) => {
+    recWrapped?.(c, ev, price);
+    shift.record(c, ev, price);
+  };
+  input.onLockChange = (locked) => {
+    if (locked || game.mode === 'menu' || shop.isOpen || hud.labelOpen || menu.open || reportEl || document.querySelector('.rr-screen')) return;
+    menu.pause();
+  };
+  let orbit = 0;
+  engine.add({
+    fixedUpdate() {
+      const hold = game.mode === 'menu' || shift.ended;
+      for (const t of trucks) if (t.state === 'away' && (hold || (t.role === 'in' && t.shiftClosed))) t.wait = Math.max(t.wait, 0.5);
+    },
+    lateUpdate(dt) {
+      if (game.mode !== 'menu') return;
+      orbit += dt * 0.05;
+      const cam = engine.camera;
+      cam.position.set(Math.cos(orbit) * 17, 7.5, -2 + Math.sin(orbit) * 13);
+      cam.lookAt(0, 0.5, -2);
+      cam.updateMatrixWorld();
+    },
+  }, 850);
+  if (game.mode === 'menu') game.toMenu();
+  else {
+    shift.start();
+    player.frozen = false;
+  }
 }
 
 function makeDebug(game) {

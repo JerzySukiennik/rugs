@@ -22,4 +22,4 @@ Q drop · F throw · mouse wheel carry distance · hold R and walk to roll up a 
 
 ## Credits
 
-Textures and HDRIs: ambientCG and Poly Haven (CC0), see `assets/CREDITS.md`. Cleaning facts: `research/cleaning-facts.md`.
+Textures and HDRIs: ambientCG and Poly Haven (CC0), see `assets/CREDITS.md`. Sounds: Freesound (CC0), see `assets/audio/*/CREDITS.md`. Radio music: "Funky Chunk", "Local Forecast", "Funkorama", "On Hold for You" by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/ Cleaning facts: `research/cleaning-facts.md`.

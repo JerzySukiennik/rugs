@@ -17,36 +17,36 @@ const DIRT_NAMES = {
 };
 
 const CSS = `
-#hud{position:fixed;inset:0;pointer-events:none;font:14px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",Helvetica,Arial,sans-serif;color:#fff;user-select:none}
-#hud .x{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.35);transition:transform .12s}
-#hud .x.on{transform:scale(1.6)}
-#hud .aim{position:absolute;left:50%;top:calc(50% + 22px);transform:translateX(-50%);text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.7);white-space:nowrap}
-#hud .aim b{font-weight:600}
-#hud .aim .k{display:inline-block;margin:3px 4px 0;padding:1px 6px;border-radius:4px;background:rgba(0,0,0,.42);font-size:12px}
-#hud .insp{display:block;margin-top:5px;font-size:12px;opacity:.9}
-#hud .held{position:absolute;right:20px;bottom:20px;max-width:340px;padding:10px 13px;border-radius:10px;background:rgba(18,20,24,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-#hud .held .n{font-weight:600}
-#hud .held .i{font-size:12px;opacity:.85;margin-top:3px}
-#hud .held .h{font-size:11px;opacity:.7;margin-top:6px;letter-spacing:.02em}
-#hud .held .bar{height:4px;border-radius:2px;background:rgba(255,255,255,.18);margin-top:7px;overflow:hidden}
-#hud .held .bar i{display:block;height:100%;background:#7fd1ff}
-#hud .money{position:absolute;right:20px;top:16px;font:600 22px/1 -apple-system,"SF Pro Display",Helvetica,sans-serif;text-shadow:0 1px 4px rgba(0,0,0,.5)}
-#hud .toasts{position:absolute;left:50%;top:18px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px}
-#hud .toast{padding:7px 14px;border-radius:9px;background:rgba(18,20,24,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:tin .25s ease-out;transition:opacity .4s}
-#hud .toast.bad{background:rgba(160,30,30,.75)}
-@keyframes tin{from{transform:translateY(-8px);opacity:0}}
-#hud .label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-1.5deg);box-shadow:0 18px 50px rgba(0,0,0,.5);display:none}
+#hud{position:fixed;inset:0;pointer-events:none;font:600 14px/1.35 'Fredoka',ui-rounded,'Arial Rounded MT Bold',system-ui,sans-serif;color:#1b1b1e;user-select:none;-webkit-font-smoothing:antialiased}
+#hud .x{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;border:2px solid #1b1b1e;box-sizing:border-box;transition:transform .15s cubic-bezier(.2,1.8,.4,1)}
+#hud .x.on{transform:scale(1.9);background:#ffd23f}
+#hud .aim{position:absolute;left:50%;top:calc(50% + 26px);transform:translateX(-50%);text-align:center;white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:4px}
+#hud .aim b{display:inline-block;padding:3px 12px;border:3px solid #1b1b1e;border-radius:12px;background:#fff;box-shadow:3px 3px 0 #1b1b1e;font-size:15px;transform:rotate(-1deg)}
+#hud .aim .k{display:inline-block;margin:0 3px;padding:2px 9px;border:2px solid #1b1b1e;border-radius:9px;background:#ffd23f;font-size:12.5px;box-shadow:2px 2px 0 #1b1b1e}
+#hud .insp{display:block;padding:2px 10px;border:2px solid #1b1b1e;border-radius:10px;background:rgba(255,250,240,.94);font-size:12.5px;box-shadow:2px 2px 0 #1b1b1e;max-width:520px;white-space:normal}
+#hud .held{position:absolute;right:18px;bottom:18px;max-width:340px;padding:12px 15px;border:3px solid #1b1b1e;border-radius:18px;background:#fffaf0;box-shadow:6px 6px 0 rgba(27,27,30,.35);transform:rotate(1deg)}
+#hud .held .n{font-family:'Lilita One','Fredoka',sans-serif;font-weight:400;font-size:19px;letter-spacing:.01em}
+#hud .held .i{font-size:12.5px;opacity:.75;margin-top:3px;font-weight:500}
+#hud .held .h{font-size:12px;margin-top:7px;padding:3px 8px;border-radius:9px;background:#ffd23f;border:2px solid #1b1b1e;display:inline-block}
+#hud .held .bar{height:10px;border:2px solid #1b1b1e;border-radius:8px;background:#fff;margin-top:8px;overflow:hidden}
+#hud .held .bar i{display:block;height:100%;background:#3bceac}
+#hud .money{position:absolute;right:18px;top:14px;font-family:'Lilita One','Fredoka',sans-serif;font-size:30px;line-height:1;padding:6px 16px;border:3px solid #1b1b1e;border-radius:16px;background:#52c46b;color:#fff;-webkit-text-stroke:1.2px #1b1b1e;paint-order:stroke fill;box-shadow:4px 5px 0 #1b1b1e;transform:rotate(2deg);transition:transform .2s cubic-bezier(.2,1.8,.4,1)}
+#hud .money.bump{transform:rotate(-3deg) scale(1.18)}
+#hud .clock{position:absolute;left:18px;top:14px;padding:6px 14px;border:3px solid #1b1b1e;border-radius:16px;background:#fffaf0;box-shadow:4px 5px 0 #1b1b1e;transform:rotate(-2deg);display:none}
+#hud .clock b{font-family:'Lilita One','Fredoka',sans-serif;font-weight:400;font-size:26px;line-height:1}
+#hud .clock span{display:block;font-size:12px;opacity:.7}
+#hud .clock.late{background:#ff5d8f;color:#fff}
+#hud .toasts{position:absolute;left:50%;top:16px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
+#hud .toast{padding:8px 16px;border:3px solid #1b1b1e;border-radius:14px;background:#fffaf0;box-shadow:4px 4px 0 #1b1b1e;animation:tin .35s cubic-bezier(.2,1.8,.4,1);transition:opacity .4s,transform .4s;font-size:15px}
+#hud .toast:nth-child(odd){transform:rotate(-1.2deg)}
+#hud .toast:nth-child(even){transform:rotate(1deg)}
+#hud .toast.bad{background:#ff5d8f;color:#fff}
+@keyframes tin{from{transform:translateY(-14px) scale(.7);opacity:0}}
+#hud .label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-2deg);display:none;filter:drop-shadow(10px 12px 0 rgba(27,27,30,.35))}
 #hud .label.on{display:block}
-#hud .label canvas{display:block;width:300px;height:auto;border-radius:3px}
-#hud .label .hint{text-align:center;margin-top:8px;font-size:12px;opacity:.85}
-#start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,12,16,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);cursor:pointer;color:#fff;font:15px/1.5 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;z-index:5}
-#start .card{max-width:560px;padding:28px 32px;border-radius:16px;background:rgba(20,22,27,.78)}
-#start h1{margin:0 0 4px;font:700 42px/1 -apple-system,"SF Pro Display",Helvetica,sans-serif;letter-spacing:-.02em}
-#start .sub{opacity:.7;margin-bottom:18px}
-#start table{border-collapse:collapse;font-size:13px}
-#start td{padding:2px 14px 2px 0;vertical-align:top}
-#start td:first-child{opacity:.65;white-space:nowrap}
-#start .go{margin-top:18px;font-weight:600}
+#hud .label canvas{display:block;width:300px;height:auto;border-radius:6px;border:3px solid #1b1b1e}
+#hud .label .hint{text-align:center;margin-top:10px;font-size:13px;display:inline-block;padding:3px 10px;border:2px solid #1b1b1e;border-radius:10px;background:#ffd23f}
+#start{display:none}
 `;
 
 export class Hud {
@@ -56,7 +56,7 @@ export class Hud {
     document.head.appendChild(st);
     const el = document.createElement('div');
     el.id = 'hud';
-    el.innerHTML = '<div class="x"></div><div class="aim"></div><div class="held" style="display:none"><div class="n"></div><div class="i"></div><div class="bar"><i></i></div><div class="h"></div></div><div class="money"></div><div class="toasts"></div><div class="label"><div class="c"></div><div class="hint">E / Esc to close</div></div>';
+    el.innerHTML = '<div class="x"></div><div class="aim"></div><div class="held" style="display:none"><div class="n"></div><div class="i"></div><div class="bar"><i></i></div><div class="h"></div></div><div class="money"></div><div class="clock"><b></b><span></span></div><div class="toasts"></div><div class="label"><div class="c"></div><div class="hint">E / Esc to close</div></div>';
     document.body.appendChild(el);
     this.el = el;
     this.cross = el.querySelector('.x');
@@ -68,6 +68,9 @@ export class Hud {
     this.heldBarI = el.querySelector('.held .bar i');
     this.heldH = el.querySelector('.held .h');
     this.moneyEl = el.querySelector('.money');
+    this.clockEl = el.querySelector('.clock');
+    this.clockB = el.querySelector('.clock b');
+    this.clockS = el.querySelector('.clock span');
     this.toastEl = el.querySelector('.toasts');
     this.labelEl = el.querySelector('.label');
     this.labelC = el.querySelector('.label .c');
@@ -110,6 +113,11 @@ export class Hud {
 
   setMoney(v) {
     if (v === this.money && this.moneyEl.textContent) return;
+    if (this.moneyEl.textContent) {
+      this.moneyEl.classList.add('bump');
+      clearTimeout(this.bumpT);
+      this.bumpT = setTimeout(() => this.moneyEl.classList.remove('bump'), 220);
+    }
     this.money = v;
     this.moneyEl.textContent = `${v < 0 ? '−' : ''}$${Math.abs(Math.round(v)).toLocaleString('en-US')}`;
   }
@@ -176,5 +184,17 @@ export class Hud {
       } else this.heldBar.style.display = 'none';
     } else this.heldEl.style.display = 'none';
     this.setMoney(game.economy?.money ?? 0);
+    const sh = game.shift;
+    const show = !!sh && game.mode && game.mode !== 'menu';
+    this.clockEl.style.display = show ? 'block' : 'none';
+    this.moneyEl.style.display = game.mode && game.mode !== 'menu' ? 'block' : 'none';
+    this.el.style.visibility = game.uiHidden ? 'hidden' : 'visible';
+    if (show) {
+      const txt = sh.ended ? 'Shift over' : sh.clock();
+      if (this.clockB.textContent !== txt) this.clockB.textContent = txt;
+      const sub = `Day ${sh.day}`;
+      if (this.clockS.textContent !== sub) this.clockS.textContent = sub;
+      this.clockEl.classList.toggle('late', sh.left < 60 && !sh.ended);
+    }
   }
 }

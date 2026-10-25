@@ -84,7 +84,7 @@ export class Input {
   }
 
   takeLook() {
-    const d = { x: this.dx * this.sensitivity, y: this.dy * this.sensitivity };
+    const d = { x: this.dx * this.sensitivity, y: this.dy * this.sensitivity * (this.invertY ? -1 : 1) };
     this.dx = 0;
     this.dy = 0;
     return d;
