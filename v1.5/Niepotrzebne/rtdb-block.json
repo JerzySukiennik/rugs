@@ -1,0 +1,68 @@
+{
+  "rooms": {
+    ".read": "auth != null",
+    ".indexOn": ["beat"],
+    "$room": {
+      ".write": "auth != null && $room.matches(/^[-A-Za-z0-9_]{8,32}$/) && ((!data.exists() && newData.child('host').val() === auth.uid) || (data.child('host').val() === auth.uid && !newData.exists()) || (data.child('host').val() === auth.uid && newData.child('host').val() === auth.uid && newData.child('beat').val() >= data.child('beat').val() + 1000) || (!newData.exists() && data.child('beat').val() < now - 30000))",
+      ".validate": "newData.hasChildren(['host', 'hostName', 'name', 'players', 'max', 'version', 'created', 'beat'])",
+      "host": { ".validate": "newData.isString() && newData.val() === auth.uid" },
+      "hostName": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24" },
+      "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
+      "players": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 4" },
+      "max": { ".validate": "newData.isNumber() && newData.val() >= 2 && newData.val() <= 4" },
+      "version": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16" },
+      "created": { ".validate": "newData.isNumber() && newData.val() <= now + 60000 && ((!data.exists() && newData.val() >= now - 60000) || newData.val() === data.val())" },
+      "beat": { ".validate": "newData.isNumber() && newData.val() <= now + 60000 && newData.val() >= now - 60000" },
+      "$other": { ".validate": false }
+    }
+  },
+  "signal": {
+    "$room": {
+      ".read": "auth != null && root.child('rugRush/rooms/' + $room + '/host').val() === auth.uid",
+      ".write": "auth != null && !newData.exists() && (root.child('rugRush/rooms/' + $room + '/host').val() === auth.uid || !root.child('rugRush/rooms/' + $room).exists())",
+      "$peer": {
+        ".read": "auth != null && auth.uid === $peer",
+        ".write": "auth != null && ((auth.uid === $peer && !data.exists() && newData.exists() && root.child('rugRush/rooms/' + $room).exists() && root.child('rugRush/rooms/' + $room + '/players').val() < root.child('rugRush/rooms/' + $room + '/max').val()) || (!newData.exists() && (auth.uid === $peer || root.child('rugRush/rooms/' + $room + '/host').val() === auth.uid || !root.child('rugRush/rooms/' + $room).exists())))",
+        ".validate": "newData.hasChildren(['offer', 'joinedAt'])",
+        "offer": {
+          ".validate": "newData.hasChildren(['type', 'sdp'])",
+          "type": { ".validate": "newData.val() === 'offer'" },
+          "sdp": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 16000" },
+          "$other": { ".validate": false }
+        },
+        "joinedAt": { ".validate": "newData.isNumber() && newData.val() <= now + 60000 && newData.val() >= now - 60000" },
+        "answer": {
+          ".write": "auth != null && root.child('rugRush/rooms/' + $room + '/host').val() === auth.uid && !data.exists() && newData.exists()",
+          ".validate": "newData.hasChildren(['type', 'sdp'])",
+          "type": { ".validate": "newData.val() === 'answer'" },
+          "sdp": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 16000" },
+          "$other": { ".validate": false }
+        },
+        "guestIce": {
+          "$i": {
+            ".write": "auth != null && auth.uid === $peer && !data.exists() && newData.exists() && $i.matches(/^([0-9]|[1-5][0-9]|6[0-3])$/)",
+            ".validate": "newData.hasChild('candidate')",
+            "candidate": { ".validate": "newData.isString() && newData.val().length <= 1024" },
+            "sdpMid": { ".validate": "newData.isString() && newData.val().length <= 32" },
+            "sdpMLineIndex": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 16" },
+            "usernameFragment": { ".validate": "newData.isString() && newData.val().length <= 256" },
+            "$other": { ".validate": false }
+          }
+        },
+        "hostIce": {
+          "$i": {
+            ".write": "auth != null && root.child('rugRush/rooms/' + $room + '/host').val() === auth.uid && !data.exists() && newData.exists() && $i.matches(/^([0-9]|[1-5][0-9]|6[0-3])$/)",
+            ".validate": "newData.hasChild('candidate')",
+            "candidate": { ".validate": "newData.isString() && newData.val().length <= 1024" },
+            "sdpMid": { ".validate": "newData.isString() && newData.val().length <= 32" },
+            "sdpMLineIndex": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 16" },
+            "usernameFragment": { ".validate": "newData.isString() && newData.val().length <= 256" },
+            "$other": { ".validate": false }
+          }
+        },
+        "$other": { ".validate": false }
+      }
+    }
+  },
+  "$other": { ".validate": false }
+}
