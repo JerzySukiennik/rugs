@@ -243,6 +243,7 @@ export class NetPlayer {
     const t = this.body.translation();
     const tx = target.x, ty = target.y + HALF + RADIUS, tz = target.z;
     const dx = tx - t.x, dy = ty - t.y, dz = tz - t.z;
+    if (dx * dx + dy * dy + dz * dz < 4e-6) return;
     if (dx * dx + dy * dy + dz * dz > 2.25 || !this.cc) {
       if (dx * dx + dy * dy + dz * dz > 2.25) this.body.setTranslation({ x: tx, y: ty, z: tz }, true);
       this.body.setNextKinematicTranslation({ x: tx, y: ty, z: tz });

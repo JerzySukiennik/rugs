@@ -156,18 +156,27 @@ export class HostSession {
 
   async accept(peerId, offer, mailbox) {
     if (this.closed) return mailbox.close();
-    const taken = [...this.peers.values()].filter((e) => e.peer && !e.peer.closed).length;
-    if (taken >= MAX_CLIENTS || this.peers.has(peerId)) return mailbox.close();
+    const old = this.peers.get(peerId);
+    if (old) {
+      if (old.slot >= 0) return mailbox.close();
+      old.aborted = true;
+      old.peer?.close('replaced');
+      this.peers.delete(peerId);
+    }
+    const taken = [...this.peers.values()].filter((e) => e.slot >= 0 || !e.aborted).length;
+    if (taken >= MAX_CLIENTS) return mailbox.close();
     const entry = { id: peerId, peer: null, slot: -1, ready: false, rtt: 0, offset: 0, rttSamples: [], youKey: '', lastPoseT: -Infinity };
     this.peers.set(peerId, entry);
+    let peer;
     try {
-      entry.peer = await acceptPeer(peerId, offer, mailbox);
+      peer = await acceptPeer(peerId, offer, mailbox);
     } catch (e) {
-      this.peers.delete(peerId);
-      this.net.emit('error', e);
+      if (this.peers.get(peerId) === entry) this.peers.delete(peerId);
+      if (!entry.aborted) console.warn('[net] accept failed', e?.message);
       return;
     }
-    if (this.closed) return entry.peer.close('host-closed');
+    if (this.closed || entry.aborted) return peer.close('host-closed');
+    entry.peer = peer;
     entry.peer.maxRate = 500;
     entry.peer.onMessage = (kind, msg) => this.onMessage(entry, kind, msg);
     entry.peer.onClose = (reason) => this.drop(peerId, reason);
@@ -280,6 +289,9 @@ export class HostSession {
       case 'pong': return this.onPong(entry, msg);
       case 'order': return this.onOrder(entry, msg);
       case 'needSurf': return this.sendFullSurface(entry, msg.id);
+      case 'insp':
+        if (Number.isFinite(msg.id)) (this.inspect ??= new Set()).add(msg.id);
+        return;
       case 'bye': return this.drop(entry.id, 'left');
     }
   }
@@ -404,6 +416,9 @@ export class HostSession {
       if (!e || this.sig(e) !== sig) {
         despawns.push(id);
         this.known.delete(id);
+        this.lastBodies.delete(id);
+        this.itemStates.delete(id);
+        this.evals.delete(id);
       }
     }
     for (const [id, e] of cur) {
@@ -672,9 +687,12 @@ export class HostSession {
 
   syncEval() {
     const g = this.game;
-    const list = g.carpets?.list ?? [];
-    if (!list.length) return;
-    const c = list[this.evalIdx++ % list.length];
+    const ids = [...(this.inspect ?? [])];
+    if (!ids.length) return;
+    const id = ids[this.evalIdx++ % ids.length];
+    this.inspect.delete(id);
+    const c = g.entities.get(id);
+    if (c?.kind !== 'carpet') return;
     const ev = liteEval(g.chem.evaluate(c));
     if (!ev) return;
     const k = JSON.stringify(ev);
@@ -688,6 +706,13 @@ export class HostSession {
     const t0 = performance.now();
     for (const e of this.peers.values()) e.player?.moveBody(dt);
     this.cost(performance.now() - t0);
+  }
+
+  timed(k, fn) {
+    const t0 = performance.now();
+    fn();
+    const s = (this.stats.sec ??= {});
+    s[k] = (s[k] ?? 0) + performance.now() - t0;
   }
 
   cost(ms) {
@@ -710,7 +735,7 @@ export class HostSession {
       if (t % 12 === 0) this.syncEntities();
       return;
     }
-    if (t % 3 === 0) {
+    if (t % 3 === 0) this.timed('state', () => {
       this.syncHolds();
       const buf = this.buildState(t % KEYFRAME_TICKS === 0);
       this.stats.stateBytes = buf.byteLength;
@@ -719,11 +744,11 @@ export class HostSession {
       if (this.fx.length) {
         this.broadcast({ t: 'fx', e: this.fx.splice(0, 400) });
       }
-    }
-    if (t % 6 === 0) this.sendCloth(now);
-    if (t % 12 === 0) this.syncSlow();
-    if (t % 15 === 0) this.syncEval();
-    this.syncSurfaces(now);
+    });
+    if (t % 6 === 0) this.timed('cloth', () => this.sendCloth(now));
+    if (t % 12 === 0) this.timed('slow', () => this.syncSlow());
+    if (t % 20 === 0) this.timed('eval', () => this.syncEval());
+    this.timed('surface', () => this.syncSurfaces(now));
     if (t % 60 === 0) {
       for (const e of this.peers.values()) if (e.ready) e.peer.send({ t: 'ping', h: now });
       if (t % 300 === 0) this.broadcastPings();
@@ -736,6 +761,8 @@ export class HostSession {
     this.lastMeasure = now;
     this.stats.msPerSec = (this.stats.acc ?? 0) / dt;
     this.stats.acc = 0;
+    this.stats.split = Object.fromEntries(Object.entries(this.stats.sec ?? {}).map(([k, v]) => [k, +(v / dt).toFixed(1)]));
+    this.stats.sec = {};
     for (const e of this.peers.values()) {
       if (!e.peer) continue;
       const sent = e.peer.sent.control + e.peer.sent.state, recv = e.peer.recv.control + e.peer.recv.state;
@@ -784,6 +811,7 @@ export class HostSession {
       room: this.roomId,
       stateBytes: this.stats.stateBytes,
       netMsPerSec: +(this.stats.msPerSec ?? 0).toFixed(2),
+      netSplit: this.stats.split,
       peers: [...this.peers.values()].map((e) => ({ slot: e.slot, name: e.look?.name, rtt: Math.round(e.rtt), ...(e.rate ?? {}) })),
     };
   }

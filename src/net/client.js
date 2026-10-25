@@ -74,7 +74,15 @@ export class ClientSession {
     if (info.players >= info.max) throw new Error('That room is full.');
     if (Date.now() + lob.fb.offset - info.beat > 30000) throw new Error('That room stopped responding.');
     this.roomId = roomId;
-    const peer = await connectToHost(lob, roomId);
+    let peer = null;
+    for (let attempt = 0; !peer; attempt++) {
+      try {
+        peer = await connectToHost(lob, roomId);
+      } catch (e) {
+        if (attempt >= 1 || this.closed) throw e;
+        console.warn('[net] retrying connection', e?.message);
+      }
+    }
     this.peer = peer;
     peer.onClose = (reason) => this.onClosed(reason);
     peer.onMessage = (kind, msg) => this.onMessage(kind, msg);
@@ -189,7 +197,14 @@ export class ClientSession {
     g.entities.nextId = Math.max(g.entities.nextId, 100000);
     g.chem.fixedUpdate = noop;
     g.chem.onRunoff = null;
-    g.chem.evaluate = (c) => this.evals.get(c.id) ?? null;
+    g.chem.evaluate = (c) => {
+      const now = performance.now();
+      if (now - (this.inspAt?.get(c.id) ?? 0) > 450) {
+        (this.inspAt ??= new Map()).set(c.id, now);
+        this.peer?.send({ t: 'insp', id: c.id });
+      }
+      return this.evals.get(c.id) ?? null;
+    };
     if (g.carpets) {
       g.carpets.fixedUpdate = noop;
       const sl = g.physics.stepListeners;
@@ -724,7 +739,8 @@ export class ClientSession {
     const g = this.game;
     const inp = g.input;
     const ev = [];
-    const blocked = !inp.locked || !!g.grab.blocked?.();
+    const blocked = !inp.locked || !!g.hud.labelOpen || !!g.shop?.isOpen;
+    if (g.eConsumed) this.consumed.add('KeyE');
     for (const code of FORWARD) {
       if (inp.pressed(code) && !blocked && !this.consumed.has(code)) ev.push([code, 1]);
       if (inp.released(code)) ev.push([code, 0]);

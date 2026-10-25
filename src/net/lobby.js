@@ -160,15 +160,17 @@ export class Lobby {
 
   onOffers(cb) {
     const rm = this.room;
-    const { onChildAdded } = this.fb;
-    const seen = new Set();
+    const { onChildAdded, onChildRemoved } = this.fb;
+    const seen = new Map();
     const off = onChildAdded(this.ref(`signal/${rm.id}`), (snap) => {
       const peer = snap.key, v = snap.val();
-      if (!v?.offer || seen.has(peer)) return;
-      seen.add(peer);
-      cb(peer, v.offer, this.hostMailbox(rm.id, peer, () => seen.delete(peer)));
+      const key = `${peer}:${v?.joinedAt}`;
+      if (!v?.offer || seen.get(peer) === key) return;
+      seen.set(peer, key);
+      cb(peer, v.offer, this.hostMailbox(rm.id, peer, () => { if (seen.get(peer) === key) seen.delete(peer); }));
     }, (e) => console.warn('[net] offers', e?.message));
-    (rm.listeners ??= []).push(off);
+    const offR = onChildRemoved(this.ref(`signal/${rm.id}`), (snap) => seen.delete(snap.key));
+    (rm.listeners ??= []).push(off, offR);
   }
 
   hostMailbox(roomId, peer, onClose) {
