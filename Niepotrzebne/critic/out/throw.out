@@ -1,4 +1,0 @@
-{"res":[{"match":"lathera","label":"LATHERA Rug Shampoo for Synthetics","start":[0,-6],"minZ":-14.71,"maxZ":-7.13,"final":[-0.8,0.1,-14.7],"outsideHall":false},{"match":"vacuum","label":"Upright Vacuum","start":[2,-6],"minZ":-13.42,"maxZ":-9.1,"final":[2,0.04,-13.42],"outsideHall":false},{"match":"brushSoft","label":"Soft Brush","start":[-2,-6],"minZ":-11.09,"maxZ":-8.3,"final":[-1.15,0.04,-11.09],"outsideHall":false},{"match":"lathera","label":"LATHERA Rug Shampoo for Synthetics","start":[0,-10],"minZ":-14.9,"maxZ":-11.27,"final":[0.24,0.06,-14.6],"outsideHall":false}],"done":true}
-elapsed 11
-[error] Failed to load resource: the server responded with a status of 404 (File not found)
-[error] Failed to load resource: the server responded with a status of 404 (File not found)

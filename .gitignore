@@ -21,3 +21,5 @@ Niepotrzebne/rules-backup/
 !assets/textures/asphalt/*.jpg
 !assets/textures/concrete_floor/
 !assets/textures/concrete_floor/*.jpg
+Niepotrzebne/critic/*
+!Niepotrzebne/critic/CRITIQUE.md

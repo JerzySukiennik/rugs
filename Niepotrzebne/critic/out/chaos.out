@@ -1,7 +1,0 @@
-{"ev":["[1.1s] A rug rolled at 6,0.1,0 state rolled","[1.8s] A t+0.7s pos 0.56,0.05,-2.42 state rolled rolledLen 3.00","[2.5s] A t+1.4s pos -1.11,0.04,-2.49 state mixed rolledLen 2.06","[3.2s] A t+2.0999999999999996s pos -1.54,0.03,-2.14 state mixed rolledLen 1.53","[3.9s] A t+2.8s pos -1.76,0.02,-1.96 state mixed rolledLen 1.26","[4.6s] A t+3.5s pos -2.01,0.02,-1.76 state mixed rolledLen 0.95","[5.3s] A t+4.199999999999999s pos -2.17,0.01,-1.63 state mixed rolledLen 0.76"],"shotReq":["chaos/01-thrown-roll.png"]}
-elapsed 201 s
-[error] Failed to load resource: the server responded with a status of 404 (File not found)
-[error] Failed to load resource: the server responded with a status of 404 (File not found)
-[PAGEERROR] Cannot read properties of undefined (reading 'stats')
-TypeError: Cannot read properties of undefined (reading 'stats')
-    at eval (eval at <anonymous> (eval at evaluate (:303:30)), <anonymous>:19:24)
