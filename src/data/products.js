@@ -9,7 +9,7 @@ export const PRODUCTS = {
   },
   woolmara: {
     brand: 'WOOLMARA', name: 'pH-Neutral Wool Shampoo', container: 'jug', form: 'gel', color: '#6fbf73',
-    capacity: 2, rate: 0.08, agents: { surf: 0.9, alk: 0.08 }, foaminess: 1.0, price: 24,
+    capacity: 2, rate: 0.08, agents: { surf: 0.9 }, foaminess: 1.0, price: 24,
     blurb: 'pH 7. Wool-safe. Gentle on dyes.',
   },
   bubblon: {

@@ -24,6 +24,8 @@ const CSS = `
 #hud .aim{position:absolute;left:50%;top:calc(50% + 26px);transform:translateX(-50%);text-align:center;white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:4px}
 #hud .aim b{display:inline-block;padding:3px 12px;border:3px solid #1b1b1e;border-radius:12px;background:#fff;box-shadow:3px 3px 0 #1b1b1e;font-size:15px;transform:rotate(-1deg)}
 #hud .aim .k{display:inline-block;margin:0 3px;padding:2px 9px;border:2px solid #1b1b1e;border-radius:9px;background:#ffd23f;font-size:12.5px;box-shadow:2px 2px 0 #1b1b1e}
+#hud .insp.stain{background:#ffd23f;font-size:13.5px;transform:rotate(-.6deg)}
+#hud .insp.stain i{font-style:normal;font-family:'Lilita One','Fredoka',sans-serif;font-weight:400;font-size:15px;margin-right:4px}
 #hud .insp{display:block;padding:2px 10px;border:2px solid #1b1b1e;border-radius:10px;background:rgba(255,250,240,.94);font-size:12.5px;box-shadow:2px 2px 0 #1b1b1e;max-width:520px;white-space:normal}
 #hud .held{position:absolute;right:18px;bottom:18px;max-width:340px;padding:12px 15px;border:3px solid #1b1b1e;border-radius:18px;background:#fffaf0;box-shadow:6px 6px 0 rgba(27,27,30,.35);transform:rotate(1deg)}
 #hud .held .hic{float:left;width:46px;height:46px;margin:0 10px 4px 0;border:2px solid #1b1b1e;border-radius:11px;background:#f1ebde}
@@ -35,10 +37,6 @@ const CSS = `
 #hud .held .bar i{display:block;height:100%;background:#3bceac}
 #hud .money{position:absolute;right:18px;top:14px;font-family:'Lilita One','Fredoka',sans-serif;font-size:30px;line-height:1;padding:6px 16px;border:3px solid #1b1b1e;border-radius:16px;background:#52c46b;color:#fff;-webkit-text-stroke:1.2px #1b1b1e;paint-order:stroke fill;box-shadow:4px 5px 0 #1b1b1e;transform:rotate(2deg);transition:transform .2s cubic-bezier(.2,1.8,.4,1)}
 #hud .money.bump{transform:rotate(-3deg) scale(1.18)}
-#hud .clock{position:absolute;left:18px;top:14px;padding:6px 14px;border:3px solid #1b1b1e;border-radius:16px;background:#fffaf0;box-shadow:4px 5px 0 #1b1b1e;transform:rotate(-2deg);display:none}
-#hud .clock b{font-family:'Lilita One','Fredoka',sans-serif;font-weight:400;font-size:26px;line-height:1}
-#hud .clock span{display:block;font-size:12px;opacity:.7}
-#hud .clock.late{background:#ff5d8f;color:#fff}
 #hud .toasts{position:absolute;left:50%;top:16px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
 #hud .toast{padding:8px 16px;border:3px solid #1b1b1e;border-radius:14px;background:#fffaf0;box-shadow:4px 4px 0 #1b1b1e;animation:tin .35s cubic-bezier(.2,1.8,.4,1);transition:opacity .4s,transform .4s;font-size:15px}
 #hud .toast:nth-child(odd){transform:rotate(-1.2deg)}
@@ -59,7 +57,7 @@ export class Hud {
     document.head.appendChild(st);
     const el = document.createElement('div');
     el.id = 'hud';
-    el.innerHTML = '<div class="x"></div><div class="aim"></div><div class="held" style="display:none"><img class="hic" alt=""><div class="n"></div><div class="i"></div><div class="bar"><i></i></div><div class="h"></div></div><div class="money"></div><div class="clock"><b></b><span></span></div><div class="toasts"></div><div class="label"><div class="c"></div><div class="hint">E / Esc to close</div></div>';
+    el.innerHTML = '<div class="x"></div><div class="aim"></div><div class="held" style="display:none"><img class="hic" alt=""><div class="n"></div><div class="i"></div><div class="bar"><i></i></div><div class="h"></div></div><div class="money"></div><div class="toasts"></div><div class="label"><div class="c"></div><div class="hint">E / Esc to close</div></div>';
     document.body.appendChild(el);
     this.el = el;
     this.cross = el.querySelector('.x');
@@ -72,9 +70,6 @@ export class Hud {
     this.heldH = el.querySelector('.held .h');
     this.heldIc = el.querySelector('.held .hic');
     this.moneyEl = el.querySelector('.money');
-    this.clockEl = el.querySelector('.clock');
-    this.clockB = el.querySelector('.clock b');
-    this.clockS = el.querySelector('.clock span');
     this.toastEl = el.querySelector('.toasts');
     this.labelEl = el.querySelector('.label');
     this.labelC = el.querySelector('.label .c');
@@ -154,6 +149,8 @@ export class Hud {
           ev = { t: now, v: game.chem.evaluate(c) };
           this.inspectCache.set(c, ev);
         }
+        const sh = game.stainHover;
+        if (sh) html += `<span class="insp stain"><i>${sh.name}</i>${sh.tip}</span>`;
         if (c.job?.note && c.state !== 'rolled') html += `<span class="insp">${c.job.client}: “${c.job.note}”</span>`;
         if (ev.v) {
           const v = ev.v;
@@ -190,17 +187,7 @@ export class Hud {
       } else this.heldBar.style.display = 'none';
     } else this.heldEl.style.display = 'none';
     this.setMoney(game.economy?.money ?? 0);
-    const sh = game.shift;
-    const show = !!sh && game.mode && game.mode !== 'menu';
-    this.clockEl.style.display = show ? 'block' : 'none';
     this.moneyEl.style.display = game.mode && game.mode !== 'menu' ? 'block' : 'none';
     this.el.style.visibility = game.uiHidden ? 'hidden' : 'visible';
-    if (show) {
-      const txt = sh.ended ? 'Shift over' : sh.clock();
-      if (this.clockB.textContent !== txt) this.clockB.textContent = txt;
-      const sub = `Day ${sh.day}`;
-      if (this.clockS.textContent !== sub) this.clockS.textContent = sub;
-      this.clockEl.classList.toggle('late', sh.left < 60 && !sh.ended);
-    }
   }
 }

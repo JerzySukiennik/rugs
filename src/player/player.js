@@ -44,7 +44,7 @@ export class Player {
     cc.setMaxSlopeClimbAngle((50 * Math.PI) / 180);
     cc.setMinSlopeSlideAngle((60 * Math.PI) / 180);
     cc.setApplyImpulsesToDynamicBodies(true);
-    cc.setCharacterMass(80);
+    cc.setCharacterMass(45);
     cc.setUp({ x: 0, y: 1, z: 0 });
     this.cc = cc;
     this.contacts = [];

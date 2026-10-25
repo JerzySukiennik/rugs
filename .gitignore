@@ -23,3 +23,7 @@ Niepotrzebne/rules-backup/
 !assets/textures/concrete_floor/*.jpg
 Niepotrzebne/critic/*
 !Niepotrzebne/critic/CRITIQUE.md
+
+worker/node_modules/
+worker/.wrangler/
+worker/.dev.vars

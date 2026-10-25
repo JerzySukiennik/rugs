@@ -312,6 +312,7 @@ export class Carpet {
     c.compliance[1] = 4e-7 * (1 + wet * 2);
     c.friction = this.roller ? 0.25 : 0.85;
     c.radius = 0.0025;
+    c.selfThick = Math.max(0.008, this.thick * 1.8);
   }
 
   sOfRow(j) {
@@ -720,6 +721,7 @@ export class Carpet {
     let dynamicNear = false;
     const visit = (col) => {
       if (col.isSensor()) return true;
+      if ((col.collisionGroups() >>> 16) & (GROUP.PLAYER | GROUP.RAGDOLL | GROUP.HELD)) return true;
       const parent = col.parent();
       if (parent && this.body && parent.handle === this.body.handle) return true;
       const st = col.shapeType();
@@ -1058,7 +1060,7 @@ export class Carpet {
     const cand = [[i0, j0, (1 - tu) * (1 - tv)], [i0 + 1, j0, tu * (1 - tv)], [i0, j0 + 1, (1 - tu) * tv], [i0 + 1, j0 + 1, tu * tv]];
     for (const [i, j, ww] of cand) if (c.active[j * c.nx + i] && ww > 0.01) { idx.push(j * c.nx + i); w.push(ww); }
     if (!idx.length) return null;
-    const h = { idx, w, target: null, k: 0.3, maxStep: 7 };
+    const h = { idx, w, target: null, k: 0.3, maxStep: 7, tether: 0.7 };
     c.handles.push(h);
     this.handles.add(h);
     this.wake();
@@ -1292,6 +1294,16 @@ export class Carpet {
       this.setRolledLen(this.pendingLen, pose, false);
       this.pendingLen = undefined;
       this.unrollFree = false;
+    }
+    if (this.body && this.mode === 'dynamic' && !this.roller) {
+      const lv = this.body.linvel(), av = this.body.angvel();
+      const hs = Math.hypot(lv.x, lv.z), lim = this.isHeld() ? 7 : 6;
+      if (hs > lim || lv.y > 2.5) {
+        const f = hs > lim ? lim / hs : 1;
+        this.body.setLinvel({ x: lv.x * f, y: Math.min(lv.y, 2.5), z: lv.z * f }, true);
+      }
+      const as = Math.hypot(av.x, av.y, av.z), alim = 6 / Math.max(0.05, this.colliderR);
+      if (as > alim) this.body.setAngvel({ x: av.x * alim / as, y: av.y * alim / as, z: av.z * alim / as }, true);
     }
     let dv = 0;
     if (this.body) {

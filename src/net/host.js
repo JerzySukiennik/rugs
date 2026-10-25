@@ -640,17 +640,6 @@ export class HostSession {
       this.money = g.economy.money;
       this.broadcast({ t: 'money', v: this.money, stats: g.stats });
     }
-    const sh = g.shift;
-    if (sh) {
-      const k = `${sh.day}|${sh.ended}|${Math.floor(sh.t / 2)}`;
-      if (k !== this.shiftKey) {
-        const endedNow = sh.ended && !this.shiftEnded;
-        this.shiftKey = k;
-        this.shiftEnded = sh.ended;
-        this.broadcast({ t: 'shift', day: sh.day, time: sh.t, ended: sh.ended, running: sh.running });
-        if (endedNow) this.broadcast({ t: 'report', day: sh.day, s: sh.stats });
-      }
-    }
     const msg = g.roller?.message ?? null;
     if (msg !== this.rollerMsg) {
       this.rollerMsg = msg;

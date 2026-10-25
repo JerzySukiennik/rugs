@@ -22,7 +22,7 @@ export class SoundHooks {
       'footstep_tile', 'footstep_carpet', 'footstep_wet', 'rug_thud', 'rug_unroll', 'cloth_flap', 'bottle_drop', 'metal_clank', 'cardboard_drop', 'body_fall',
       'truck_engine_loop', 'truck_reverse_beep', 'truck_air_brake', 'truck_door_open', 'truck_door_close', 'ramp_clank', 'roller_motor_loop', 'stretch_film_loop',
       'label_printer', 'cash_register', 'forklift_engine_loop', 'forklift_hydraulic', 'uv_click', 'button_press', 'trash_drop', 'roller_door',
-      'ui_click', 'ui_hover', 'ui_pop', 'ui_whoosh', 'ui_error', 'ui_success', 'ui_coin', 'ui_shift_end', 'ui_stamp', 'ui_join', 'ui_leave', 'ui_slider',
+      'ui_click', 'ui_hover', 'ui_pop', 'ui_whoosh', 'ui_error', 'ui_success', 'ui_coin', 'ui_join', 'ui_leave', 'ui_slider',
     ]);
     const hud = game.hud;
     if (hud && !hud.__sfx) {

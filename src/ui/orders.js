@@ -83,8 +83,7 @@ export class Clipboard {
     this.acc = 0;
     if (show) this.render();
     this.track();
-    const day = g.shift?.day ?? 1;
-    const vis = this.guideOn && g.mode !== 'menu' && day <= 1 && !g.flags.guideDone && !g.uiHidden;
+    const vis = this.guideOn && g.mode !== 'menu' && !g.flags.guideDone && !g.uiHidden;
     this.guide.style.display = vis ? 'block' : 'none';
     if (!vis) return;
     let cur = -1;

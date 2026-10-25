@@ -84,7 +84,7 @@ export class FloorWater {
     this.x0 = BAY.cx - BAY.half;
     this.z0 = BAY.cz - BAY.half;
     this.params = {
-      g: 9.81, film: 0.0007, bladeFilm: 0.00005, wetTh: 0.00006, pinDry: 0.0016, pinWet: 0.0004,
+      g: 9.81, film: 0.0007, bladeFilm: 0.000004, wetTh: 0.00006, pinDry: 0.0016, pinWet: 0.0004,
       fricBase: 0.35, fricVisc: 7.5e-5, drain: 7, evap: 3.5e-6, foamDecay: 1 / 55, foamDecayDry: 1 / 70,
       foamGen: 60, dissolve: 0.35, soapPerKg: fluids.units.powder.soapLitersPerKg, dryRate: 1 / 80, powderLife: 120,
       rippleC: 0.32, rippleDamp: 0.965,
@@ -254,7 +254,7 @@ export class FloorWater {
       const dx = this.x0 + (i + 0.5) * c - x, dz = this.z0 + (j + 0.5) * c - z;
       const d = Math.hypot(dx, dz) / radius;
       if (d >= 1) continue;
-      const w = (1 - d * d) ** 2;
+      const w = d < 0.6 ? 1 : 1 - (d - 0.6) / 0.4;
       avail += cpu[(j * n + i) * 4] * w * c * c;
     }
     const availL = avail * 1000;
@@ -281,7 +281,7 @@ export class FloorWater {
       const dx = this.x0 + (i + 0.5) * c - x, dz = this.z0 + (j + 0.5) * c - z;
       const d = Math.hypot(dx, dz) / radius;
       if (d >= 1) continue;
-      const w = (1 - d * d) ** 2;
+      const w = d < 0.6 ? 1 : 1 - (d - 0.6) / 0.4;
       cpu[(j * n + i) * 4] *= 1 - frac * w;
     }
   }

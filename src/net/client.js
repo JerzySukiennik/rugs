@@ -157,16 +157,6 @@ export class ClientSession {
         if (g.shop?.isOpen) g.shop.render();
         return;
       case 'toast': return g.hud.toast(msg.text, msg.bad, msg.ms);
-      case 'shift':
-        if (g.shift) {
-          g.shift.day = msg.day;
-          g.shift.t = msg.time;
-          g.shift.ended = msg.ended;
-          g.shift.running = msg.running;
-          if (!msg.ended) g.closeReport?.();
-        }
-        return;
-      case 'report': return g.onShiftEnd?.(msg.day, msg.s);
       case 'roller':
         if (msg.msg) g.roller?.say(msg.msg);
         return;

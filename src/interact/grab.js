@@ -349,8 +349,8 @@ export class Grab {
     h.handle.setTarget(target, 0.9);
     const pt = h.handle.point?.();
     const lag = pt ? pt.distanceTo(target) : 0;
-    if (lag > 3.0) return this.release();
+    if (lag > 3.5) return this.release();
     const m = h.carpet.mass ?? 10;
-    this.player.speedMul = Math.max(0.3, 1 - m / 35) * (lag > 0.6 ? Math.max(0.15, 1 - (lag - 0.6) * 0.8) : 1);
+    this.player.speedMul = Math.max(0.6, 1 - m / 70) * (lag > 1 ? Math.max(0.3, 1 - (lag - 1) * 0.6) : 1);
   }
 }

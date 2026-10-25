@@ -106,11 +106,6 @@ export class Juice {
       const d = g.player.feet.distanceTo(new THREE.Vector3(t.x, t.y, t.z));
       if (f > 400 && d < 6) this.shake(Math.min(0.08, f / 20000) * (1 - d / 6));
     };
-    const end = g.onShiftEnd;
-    g.onShiftEnd = (day, s) => {
-      end?.(day, s);
-      setTimeout(() => this.confetti(90), 300);
-    };
   }
 
   marker(text, color) {

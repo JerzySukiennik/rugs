@@ -379,7 +379,7 @@ export class Tool extends Item {
           if (this.def.wet) this.absorb(r.liters, r.dirt, 0);
         }
       } else if (this.def.wet && g.fluids) {
-        const got = g.fluids.removeWater(head.x, head.z, this.def.radius * 1.2, Math.min(0.8 * dt, this.def.tank - this.tank));
+        const got = g.fluids.removeWater(head.x, head.z, this.def.radius * 1.5, Math.min(3 * dt, this.def.tank - this.tank));
         this.absorb(got, 0.3 * got, 0);
       }
     } else if (k === 'brush') {

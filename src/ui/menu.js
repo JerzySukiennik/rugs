@@ -227,7 +227,7 @@ export class Menu {
     const g = this.game;
     if (g.mode === 'solo') g.engine.paused = true;
     const scr = el('div', { class: 'rr-screen dim rr-ui', style: 'flex-direction:column' });
-    const who = g.mode === 'host' ? `Hosting · ${1 + (g.net?.peers?.length ?? 0)} in the warehouse` : g.mode === 'client' ? 'Connected to a co-op warehouse' : 'Solo shift';
+    const who = g.mode === 'host' ? `Hosting · ${1 + (g.net?.peers?.length ?? 0)} in the warehouse` : g.mode === 'client' ? 'Connected to a co-op warehouse' : 'Solo';
     scr.append(el('div', { class: 'rr-panel', style: 'width:min(460px,94vw);display:flex;flex-direction:column;align-items:center;gap:14px' },
       el('h2', {}, 'Paused'),
       el('div', { class: 'rr-muted', style: 'font-weight:600;margin-bottom:6px' }, who),

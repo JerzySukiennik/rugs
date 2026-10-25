@@ -97,7 +97,7 @@ void main() {
     float back = 1.5 * uCell + sp * uDt;
     if (d < -back || d > 1.5 * uCell) continue;
     bool moving = sp > 0.03;
-    bool inside = t >= -0.6 * uCell && t <= L + 0.6 * uCell;
+    bool inside = t >= -1.2 * uCell && t <= L + 1.2 * uCell;
     if (d < 0.0 && moving && inside) {
       film = uBladeFilm;
       float w[4];
@@ -115,7 +115,9 @@ void main() {
         if (crossing && ext) { f[k] = 0.0; continue; }
         if (moving && d >= 0.0 && d < 1.5 * uCell && inside) {
           float w = max(dot(vec2(off[k]), nr), 0.0);
-          float side = abs(dot(vec2(off[k]), ed));
+          float lat = dot(vec2(off[k]), ed);
+          float side = abs(lat);
+          if ((t < 2.0 * uCell && lat < 0.0) || (t > L - 2.0 * uCell && lat > 0.0)) f[k] = 0.0;
           f[k] *= mix(1.0, 0.5, side);
           if (d < uCell) f[k] = max(f[k], h * sp * uCell * w);
         }
@@ -191,8 +193,8 @@ void main() {
     vec4 r = uRemove[i];
     float d = length(uv - r.xy) / r.z;
     if (d < 1.0) {
-      float w = 1.0 - d * d;
-      float m = 1.0 - r.w * w * w;
+      float w = 1.0 - smoothstep(0.6, 1.0, d);
+      float m = 1.0 - r.w * w;
       nh *= m;
       tr *= m;
     }
@@ -202,7 +204,7 @@ void main() {
     nh *= m;
     tr *= m;
   }
-  nh = max(nh - uEvap * uDt, 0.0);
+  nh = max(nh - uEvap * (nh < 0.0003 ? 6.0 : 1.0) * uDt, 0.0);
   tr.y *= exp(-uDt * (nh > 0.0002 ? uFoamDecay : uFoamDecayDry));
   tr.x = clamp(tr.x, 0.0, nh);
   tr.y = max(tr.y, 0.0);

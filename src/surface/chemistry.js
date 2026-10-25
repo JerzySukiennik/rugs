@@ -304,6 +304,8 @@ export class Chemistry {
       if (tool.rubber && !fb.rubber) f.shrink[i] += 0.0008 * w;
       if (tool.rake && !fb.rake) f.shrink[i] += 0.0016 * w;
       if (st.type === 'silk' && wet > 0.2) f.bleach[i] += 0.001 * w;
+      if (!st.alertDmg && f.shrink[i] > 0.3 && (tool.strength > 0.8 || tool.rubber || tool.rake || fb.felting)) st.alertDmg = 'shrink';
+      if (!st.alertDmg && st.type === 'silk' && wet > 0.2 && f.bleach[i] > 0.3) st.alertDmg = 'bleach';
       st.active[i] = 1;
       this.syncCell(st, i);
     });
@@ -369,7 +371,10 @@ export class Chemistry {
         }
         f.mold[i] -= f.mold[i] * 0.06 * w * (f.fungi[i] > 0.15 ? 2.5 : 0.6);
       }
-      if (tool.beater && !fb.beater) f.shrink[i] += 0.0025 * w;
+      if (tool.beater && !fb.beater) {
+        f.shrink[i] += 0.0025 * w;
+        if (!st.alertDmg && f.shrink[i] > 0.3) st.alertDmg = 'shrink';
+      }
       st.active[i] = 1;
       this.syncCell(st, i);
     });
@@ -521,6 +526,7 @@ export class Chemistry {
     for (let i = i0; i < i1; i++) {
       if (!active[i]) continue;
       const wet = water[i];
+      const b0 = bleach[i], l0 = bleed[i], s0 = shrink[i];
       const m = 1 + 3 * agit[i];
       const fixK = 1 / (1 + 6 * fix[i]);
       if (wet > 0.15 && gel[i] > 0) gel[i] -= gel[i] * 0.22 * dt * (wet < 1 ? wet : 1);
@@ -640,11 +646,16 @@ export class Chemistry {
         sticky[i] = Math.min(1, sticky[i] + back * 0.2);
         susp[i] -= back;
       }
-      if (!st.alertDmg && (bleach[i] > 0.3 || bleed[i] > 0.3 || shrink[i] > 0.3)) st.alertDmg = bleach[i] > 0.3 ? 'bleach' : bleed[i] > 0.3 ? 'bleed' : 'shrink';
-      if (wetT[i] > 55 && fungi[i] < 0.1 && mold[i] < 0.05) st.alertDamp = true;
       if (bleed[i] > 1) bleed[i] = 1;
       if (bleach[i] > 1) bleach[i] = 1;
       if (shrink[i] > 1) shrink[i] = 1;
+      if (!st.alertDmg) {
+        const g = 0.01 * dt;
+        if (bleach[i] > 0.3 && bleach[i] - b0 > g) st.alertDmg = 'bleach';
+        else if (bleed[i] > 0.3 && bleed[i] - l0 > g) st.alertDmg = 'bleed';
+        else if (shrink[i] > 0.3 && shrink[i] - s0 > g) st.alertDmg = 'shrink';
+      }
+      if (wetT[i] > 55 && fungi[i] < 0.1 && mold[i] < 0.05) st.alertDamp = true;
       const live = water[i] > 0.001 || foam[i] > 0.001 || frozen[i] > 0 || agit[i] > 0.01 || gel[i] > 0.001 || wetT[i] > 0 ||
         ox[i] + enz[i] + tannin[i] + reducer[i] + chlor[i] + solv[i] + fungi[i] + acid[i] + cold[i] + absorb[i] * grease[i] > 0.001;
       this.syncCell(st, i);

@@ -25,13 +25,13 @@ import { Audio } from './audio/audio.js';
 import { SoundHooks } from './audio/hooks.js';
 import { Radio } from './audio/radio.js';
 import { Menu } from './ui/menu.js';
-import { showReport } from './ui/report.js';
-import { Shift } from './game/shift.js';
-import { Save } from './game/save.js';
 import { loadSettings, applySettings } from './game/settings.js';
 import { loadLook, Avatar } from './player/avatar.js';
 import { Juice } from './game/juice.js';
 import { Clipboard } from './ui/orders.js';
+import { StainHint } from './ui/stainHint.js';
+import { Briefing } from './game/briefing.js';
+import { Assistant } from './ui/assistant.js';
 import { Net } from './net/net.js';
 
 const _v = new THREE.Vector3();
@@ -187,7 +187,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
   const grab = new Grab(engine, physics, input, player, {
     carpets,
     hud,
-    blocked: () => hud.labelOpen || shop.isOpen || !!player.inVehicle || game.eConsumed,
+    blocked: () => hud.labelOpen || shop.isOpen || !!game.assistant?.isOpen || !!player.inVehicle || game.eConsumed,
   });
   game.grab = grab;
   engine.add(grab, -40);
@@ -439,12 +439,9 @@ function setupFlow(game) {
   const { engine, input, player, hud, shop, ragdoll, trucks } = game;
   game.settings = loadSettings();
   game.look = loadLook();
-  const shift = new Shift(game);
-  game.shift = shift;
-  engine.add(shift, 400);
-  const save = new Save(game);
-  game.save = save;
-  save.captureSlots();
+  try {
+    localStorage.removeItem('rugrush.save.v1');
+  } catch (e) {}
   const menu = new Menu(game);
   game.menu = menu;
   engine.add(new SoundHooks(game), 996);
@@ -453,6 +450,7 @@ function setupFlow(game) {
   game.flags = {};
   game.clipboard = new Clipboard(game);
   engine.add(game.clipboard, 991);
+  engine.add(new StainHint(game), 985);
   const wr0 = game.onRugWrapped;
   game.onRugWrapped = (c, ev, price) => {
     wr0?.(c, ev, price);
@@ -463,6 +461,10 @@ function setupFlow(game) {
     dp0?.(t, inside);
     if (inside.some((c) => c.wrapped)) game.flags.shipped = true;
   };
+  game.briefing = new Briefing(game);
+  engine.add(game.briefing, 988);
+  game.assistant = new Assistant(game);
+  engine.add(game.assistant, 992);
   game.radio = new Radio(game, new THREE.Vector3(-8.6, 1.0, 1.85), Math.PI / 2);
   let selfAv = null;
   const buildSelf = (look) => {
@@ -492,7 +494,6 @@ function setupFlow(game) {
   applyLook(game.look);
   game.onLookChanged = applyLook;
   applySettings(game, game.settings);
-  let reportEl = null;
   const resetWorld = () => {
     if (game.grab.held) game.grab.release();
     for (const c of [...(game.carpets?.list ?? [])]) game.removeCarpet(c);
@@ -505,8 +506,7 @@ function setupFlow(game) {
       t.visible(false);
       t.trips = 0;
     }
-    reportEl?.remove();
-    reportEl = null;
+    game.flags = {};
     const dk = LAYOUT.inboundDock;
     player.teleport(new THREE.Vector3(LAYOUT.spawn.x, 0, LAYOUT.spawn.z), Math.atan2(-(dk.x - LAYOUT.spawn.x), -(dk.z - LAYOUT.spawn.z)));
     player.pitch = -0.05;
@@ -519,35 +519,22 @@ function setupFlow(game) {
     input.autoLock = true;
     input.lock();
     game.audio.stopMusic();
-    hud.toast(`Day ${shift.day} · the trucks are on their way`);
-  };
-  const loadProgress = () => {
-    const data = save.peek();
-    if (data) save.restore(data);
-    else {
-      shift.day = 1;
-      game.economy.money = 150;
-    }
+    hud.toast('The trucks are on their way');
   };
   game.startSolo = () => {
     resetWorld();
-    loadProgress();
-    shift.start();
     enterPlay('solo');
   };
   game.startHost = async (name) => {
     if (!game.net) throw new Error('Multiplayer is not available.');
     resetWorld();
-    loadProgress();
     await game.net.host({ name, look: game.look });
-    shift.start();
     enterPlay('host');
   };
   game.joinRoom = async (id) => {
     if (!game.net) throw new Error('Multiplayer is not available.');
     resetWorld();
     await game.net.join(id, { look: game.look });
-    shift.start();
     enterPlay('client');
   };
   game.toMenu = () => {
@@ -560,7 +547,6 @@ function setupFlow(game) {
   };
   game.leaveToMenu = () => {
     engine.paused = false;
-    if (game.mode === 'solo' || game.mode === 'host') save.write();
     const wasClient = game.mode === 'client';
     game.net?.leave?.();
     if (wasClient) return location.reload();
@@ -573,44 +559,15 @@ function setupFlow(game) {
     input.autoLock = true;
     input.lock();
   };
-  game.onShiftEnd = (day, s) => {
-    if (game.grab.held) game.grab.release();
-    input.autoLock = false;
-    input.unlock();
-    if (game.mode !== 'client') save.write();
-    reportEl = showReport(game, day, s, {
-      canContinue: game.mode !== 'client',
-      onNext: () => {
-        reportEl = null;
-        shift.next();
-        save.write();
-        input.autoLock = true;
-        input.lock();
-      },
-    });
-  };
-  game.closeReport = () => {
-    if (!reportEl) return;
-    reportEl.remove();
-    reportEl = null;
-    input.autoLock = true;
-    input.lock();
-  };
-  game.onShiftStart = (day) => hud.toast(`Day ${day} · new shift, new rugs`);
-  const recWrapped = game.onRugWrapped;
-  game.onRugWrapped = (c, ev, price) => {
-    recWrapped?.(c, ev, price);
-    shift.record(c, ev, price);
-  };
   input.onLockChange = (locked) => {
-    if (locked || game.mode === 'menu' || shop.isOpen || hud.labelOpen || menu.open || reportEl || document.querySelector('.rr-screen')) return;
+    if (locked || game.mode === 'menu' || shop.isOpen || game.assistant?.isOpen || hud.labelOpen || menu.open || document.querySelector('.rr-screen')) return;
     menu.pause();
   };
   let orbit = 0;
   engine.add({
     fixedUpdate() {
-      const hold = game.mode === 'menu' || shift.ended;
-      for (const t of trucks) if (t.state === 'away' && (hold || (t.role === 'in' && t.shiftClosed))) t.wait = Math.max(t.wait, 0.5);
+      const busy = (game.carpets?.list ?? []).filter((c) => !c.wrapped).length >= 4;
+      for (const t of trucks) if (t.state === 'away' && (game.mode === 'menu' || (t.role === 'in' && busy))) t.wait = Math.max(t.wait, 0.5);
     },
     lateUpdate(dt) {
       if (game.mode !== 'menu') return;
@@ -662,10 +619,7 @@ function setupFlow(game) {
     },
   }, 997);
   if (game.mode === 'menu') game.toMenu();
-  else {
-    shift.start();
-    player.frozen = false;
-  }
+  else player.frozen = false;
 }
 
 function makeDebug(game) {
