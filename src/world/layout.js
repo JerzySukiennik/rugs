@@ -14,7 +14,7 @@ export const BAY = {
 
 export const LAYOUT = {
   ground: { half: 40 },
-  hall: { minX: -20, maxX: 20, minZ: -15, maxZ: 15, height: 7 },
+  hall: { minX: -20, maxX: 20, minZ: -15, maxZ: 15, height: 7, chordY: 6.3 },
   inboundDock: { x: 20, z: -8, door: 4.5 },
   outboundDock: { x: 20, z: 8, door: 4.5 },
   shelves: [{ x: -9.2, z: -6.5, rotY: Math.PI / 2 }, { x: -9.2, z: -1.5, rotY: Math.PI / 2 }],

@@ -114,6 +114,7 @@ export class Container extends Item {
     this.product = p;
     this.nozzle = m.nozzle;
     this.trigger = m.group.getObjectByName('trigger');
+    this.updateFill = m.updateFill ?? null;
     this.fill = p.capacity;
     this.tilt = 0;
     this.stream = null;
@@ -210,6 +211,7 @@ export class Container extends Item {
     if (s) s.emit(origin, dir, p.velocity);
     else this.directDeposit(origin, dir, this.product.rate * dt * (this.product.form === 'foam' ? FOAM_EXPANSION : 1));
     this.fill = Math.max(0, this.fill - this.product.rate * dt);
+    this.updateFill?.(this.fillFrac);
   }
 }
 

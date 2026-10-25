@@ -17,3 +17,7 @@ assets/textures/*/roughness.jpg
 assets/textures/*/ao.jpg
 Niepotrzebne/audio-work/
 Niepotrzebne/rules-backup/
+!assets/textures/asphalt/
+!assets/textures/asphalt/*.jpg
+!assets/textures/concrete_floor/
+!assets/textures/concrete_floor/*.jpg
