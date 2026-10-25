@@ -142,7 +142,7 @@ export const TOOLS = {
   brushRubber: { name: 'Rubber Pet Brush', price: 12, kind: 'brush', strength: 0.6, radius: 0.11, rubber: true },
   rake: { name: 'Rug Rake', price: 18, kind: 'brush', strength: 0.35, radius: 0.22, rake: true },
   squeegee: { name: 'Floor & Rug Squeegee', price: 25, kind: 'squeegee', width: 1.1 },
-  scraper: { name: 'Bone Spatula', price: 6, kind: 'scraper', radius: 0.05 },
+  scraper: { name: 'Bone Spatula', price: 6, kind: 'scraper', radius: 0.065 },
   iron: { name: 'Iron + Brown Paper', price: 35, kind: 'iron', radius: 0.1 },
   uvlamp: { name: 'UV Torch 365 nm', price: 22, kind: 'uvlamp' },
   blower: { name: 'Air Mover', price: 90, kind: 'blower' },

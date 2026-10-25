@@ -233,9 +233,21 @@ export class Chemistry {
     const s = (tool.strength ?? 0.6) * Math.min(3, dt * 60);
     const shag = st.type === 'shag';
     let dryHits = 0;
+    let mw = 0, mWater = 0, mGel = 0, mSurf = 0, mAlk = 0, mFoam = 0;
+    st.surface.forEachInRadius(uv.u, uv.v, radius, (x, y, w0) => {
+      const i = y * st.W + x;
+      mw += w0; mWater += f.water[i] * w0; mGel += f.gel[i] * w0; mSurf += f.surf[i] * w0; mAlk += f.alk[i] * w0; mFoam += f.foam[i] * w0;
+    });
+    if (mw > 0) { mWater /= mw; mGel /= mw; mSurf /= mw; mAlk /= mw; mFoam /= mw; }
     st.surface.forEachInRadius(uv.u, uv.v, radius, (x, y, w0) => {
       const i = y * st.W + x;
       const w = Math.min(1, w0 * 2.5) * s;
+      const mix = Math.min(0.35, w * 0.12);
+      f.water[i] += (mWater - f.water[i]) * mix;
+      f.gel[i] += (mGel - f.gel[i]) * mix;
+      f.surf[i] += (mSurf - f.surf[i]) * mix;
+      f.alk[i] += (mAlk - f.alk[i]) * mix;
+      f.foam[i] += (mFoam - f.foam[i]) * mix;
       const surf = f.surf[i], alk = f.alk[i];
       const film = f.water[i] + f.gel[i] * 0.8 + f.foam[i] * 0.3;
       const wet = Math.max(film, surf > 0.25 ? 0.4 : 0);
@@ -403,15 +415,18 @@ export class Chemistry {
     const st = this.rugs.get(carpet);
     if (!st) return;
     const f = st.f;
-    st.surface.forEachInRadius(uv.u, uv.v, radius, (x, y, w) => {
+    st.surface.forEachInRadius(uv.u, uv.v, radius * 1.3, (x, y, w0) => {
       const i = y * st.W + x;
+      const w = Math.min(1, w0 * 3);
       const frozen = f.frozen[i] > 0.3;
-      f.gum[i] -= f.gum[i] * (frozen ? 0.22 : 0.02) * w;
-      if (!frozen && f.gum[i] > 0.2) f.shrink[i] += 0.0006 * w;
-      if (f.wax[i] > 0.3) f.wax[i] -= (f.wax[i] - 0.3) * (frozen ? 0.25 : 0.12) * w;
-      f.mud[i] -= f.mud[i] * 0.06 * w;
-      if (f.solv[i] > 0.2) f.paint[i] -= f.paint[i] * 0.07 * w;
-      else f.paint[i] -= f.paint[i] * 0.008 * w;
+      if (f.gum[i] > 0) {
+        const k = frozen ? 0.09 : 0.012;
+        f.gum[i] = Math.max(0, f.gum[i] - (k + f.gum[i] * k * 2) * w);
+        if (!frozen && f.gum[i] > 0.2) f.shrink[i] += 0.0006 * w;
+      }
+      if (f.wax[i] > 0) f.wax[i] = Math.max(0, f.wax[i] - (frozen ? 0.08 : 0.04) * w - f.wax[i] * 0.05 * w);
+      if (f.mud[i] > 0) f.mud[i] = Math.max(0, f.mud[i] - 0.03 * w - f.mud[i] * 0.06 * w);
+      if (f.paint[i] > 0) f.paint[i] = Math.max(0, f.paint[i] - (f.solv[i] > 0.2 ? 0.05 : 0.004) * w - f.paint[i] * (f.solv[i] > 0.2 ? 0.07 : 0.008) * w);
       st.active[i] = 1;
       this.syncCell(st, i);
     });
@@ -509,17 +524,17 @@ export class Chemistry {
       const m = 1 + 3 * agit[i];
       const fixK = 1 / (1 + 6 * fix[i]);
       if (wet > 0.15 && gel[i] > 0) gel[i] -= gel[i] * 0.22 * dt * (wet < 1 ? wet : 1);
-      const liq = wet + gel[i] * 0.8 + foam[i] * 0.15;
-      if (liq > 0.05) {
+      const liq = wet + gel[i] * 0.8 + foam[i] * 0.15 + (ox[i] + enz[i] + tannin[i] + reducer[i] + chlor[i]) * 0.15;
+      if (liq > 0.03) {
         const o = ox[i];
         if (o > 0.001) {
-          const r = o * 0.06 * m * dt;
-          wine[i] -= wine[i] * r;
-          coffee[i] -= coffee[i] * r * 0.7;
+          const r = Math.min(0.9, o * 0.4 * m * dt);
+          wine[i] -= wine[i] * r + Math.min(wine[i], o * 0.02 * dt);
+          coffee[i] -= coffee[i] * r * 0.8 + Math.min(coffee[i], o * 0.012 * dt);
           urine[i] -= urine[i] * r * 0.25;
           mold[i] -= mold[i] * r * 0.4;
           sticky[i] -= sticky[i] * r * 0.2;
-          ox[i] = o - o * 0.02 * dt;
+          ox[i] = o - o * 0.04 * dt;
           const ex = o - oxTol;
           if (ex > 0) {
             bleach[i] += ex * 0.05 * dt;
@@ -676,7 +691,7 @@ export class Chemistry {
       res += f.gel[i] + f.surf[i] * 0.35 + f.encap[i] * 0.3 + f.powder[i] + f.foam[i] * 0.5 + f.oil[i] + f.susp[i];
       const dm = f.bleed[i] + f.bleach[i] + f.shrink[i] * 0.8 + f.burn[i] * 1.5;
       dmg += dm;
-      if (dm > 0.5) peak++;
+      if (dm > 0.3) peak++;
       wet += f.water[i];
       if (f.water[i] > 0.4) wetHi++;
       if (f.gum[i] > 0.4 || f.wax[i] > 0.45 || f.paint[i] > 0.4) lumps++;
@@ -696,12 +711,13 @@ export class Chemistry {
       per,
     };
     r.dryEnough = r.wet < 0.12 && r.wetHigh < 0.05;
-    r.ruined = r.damage > 0.06 || r.damagePeak > 0.1;
-    const score = clean * (1 - Math.min(1, r.residue * 2.5) * 0.35) * (1 - Math.min(1, r.damage * 6)) * (1 - Math.min(0.7, r.damagePeak * 8)) * (r.lumps > 0.002 ? 0.8 : 1);
+    const fragile = st.type === 'silk' ? 0.004 : st.type === 'persian' ? 0.015 : 0.08;
+    r.ruined = r.damage > 0.06 || r.damagePeak > fragile;
+    const score = clean * (1 - Math.min(1, r.residue * 2.5) * 0.35) * (1 - Math.min(1, r.damage * 6)) * (1 - Math.min(0.7, r.damagePeak * 12)) * (r.lumps > 0.002 ? 0.8 : 1);
     r.score = Math.max(0, score);
     let grade = r.ruined ? 'F' : score > 0.93 ? 'A+' : score > 0.85 ? 'A' : score > 0.72 ? 'B' : score > 0.55 ? 'C' : score > 0.35 ? 'D' : 'E';
     const order = ['A+', 'A', 'B', 'C', 'D', 'E', 'F'];
-    const cap = r.damagePeak > 0.04 ? 'D' : r.damagePeak > 0.01 ? 'C' : null;
+    const cap = r.damagePeak > 0.02 ? 'D' : r.damagePeak > 0.006 ? 'C' : r.damagePeak > 0.002 ? 'B' : null;
     if (cap && order.indexOf(grade) < order.indexOf(cap)) grade = cap;
     r.grade = grade;
     return r;

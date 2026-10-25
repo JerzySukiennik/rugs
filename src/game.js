@@ -145,7 +145,7 @@ export async function createGame({ container, params = new URLSearchParams(locat
       const r = b.body.rotation();
       const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(new THREE.Quaternion(r.x, r.y, r.z, r.w));
       if (dir.y < -0.5 || dir.y > 0.5) continue;
-      sources.push({ pos: new THREE.Vector3(t.x, t.y + 0.2, t.z), dir, range: 5.5, cos: Math.cos(0.75), power: 9, isBlower: true });
+      sources.push({ pos: new THREE.Vector3(t.x, t.y + 0.2, t.z), dir, range: 5.5, cos: Math.cos(0.75), power: 6, isBlower: true });
     }
     for (const d of game.dryers) if (d.on) sources.push(d);
     for (let j = 0; j < G[1]; j++) for (let i = 0; i < G[0]; i++) {

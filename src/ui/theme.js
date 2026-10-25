@@ -55,6 +55,9 @@ const CSS = `
 #shop .it{background:#fff!important;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);border-radius:14px!important;color:var(--ink)}
 #shop .it:hover{transform:translateY(-2px) rotate(-.6deg)}
 #shop .sw{border:2px solid var(--ink)}
+#shop .ic{width:52px;height:52px;flex:none;border-radius:12px;background:#f1ebde;border:2px solid var(--ink)}
+#shop .q{flex:1;margin:0 16px;font-family:var(--font);font-size:17px;font-weight:600;padding:9px 14px;border:3px solid var(--ink);border-radius:14px;background:#fff;outline:none;min-width:120px;color:var(--ink)}
+#shop .q:focus{border-color:var(--blue)}
 #shop .sec{font-family:var(--display);font-weight:400;font-size:18px!important;opacity:1!important;letter-spacing:.04em!important}
 #shop .pr{font-family:var(--display);font-size:20px;font-weight:400!important}
 #shop footer{border-top:3px dashed rgba(27,27,30,.25)!important;opacity:1!important}

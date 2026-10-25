@@ -1,5 +1,6 @@
 // Rug Rush HUD: crosshair, aim hints, held item panel, money, toasts, rug inspection, care-label viewer and start overlay.
 import { drawCareLabel } from './careLabel.js';
+import { productIcon, toolIcon } from './icons.js';
 
 const DIRT_NAMES = {
   dust: 'dust & grit (vacuum)',
@@ -25,6 +26,8 @@ const CSS = `
 #hud .aim .k{display:inline-block;margin:0 3px;padding:2px 9px;border:2px solid #1b1b1e;border-radius:9px;background:#ffd23f;font-size:12.5px;box-shadow:2px 2px 0 #1b1b1e}
 #hud .insp{display:block;padding:2px 10px;border:2px solid #1b1b1e;border-radius:10px;background:rgba(255,250,240,.94);font-size:12.5px;box-shadow:2px 2px 0 #1b1b1e;max-width:520px;white-space:normal}
 #hud .held{position:absolute;right:18px;bottom:18px;max-width:340px;padding:12px 15px;border:3px solid #1b1b1e;border-radius:18px;background:#fffaf0;box-shadow:6px 6px 0 rgba(27,27,30,.35);transform:rotate(1deg)}
+#hud .held .hic{float:left;width:46px;height:46px;margin:0 10px 4px 0;border:2px solid #1b1b1e;border-radius:11px;background:#f1ebde}
+#hud .held .hic[src=""]{display:none}
 #hud .held .n{font-family:'Lilita One','Fredoka',sans-serif;font-weight:400;font-size:19px;letter-spacing:.01em}
 #hud .held .i{font-size:12.5px;opacity:.75;margin-top:3px;font-weight:500}
 #hud .held .h{font-size:12px;margin-top:7px;padding:3px 8px;border-radius:9px;background:#ffd23f;border:2px solid #1b1b1e;display:inline-block}
@@ -56,7 +59,7 @@ export class Hud {
     document.head.appendChild(st);
     const el = document.createElement('div');
     el.id = 'hud';
-    el.innerHTML = '<div class="x"></div><div class="aim"></div><div class="held" style="display:none"><div class="n"></div><div class="i"></div><div class="bar"><i></i></div><div class="h"></div></div><div class="money"></div><div class="clock"><b></b><span></span></div><div class="toasts"></div><div class="label"><div class="c"></div><div class="hint">E / Esc to close</div></div>';
+    el.innerHTML = '<div class="x"></div><div class="aim"></div><div class="held" style="display:none"><img class="hic" alt=""><div class="n"></div><div class="i"></div><div class="bar"><i></i></div><div class="h"></div></div><div class="money"></div><div class="clock"><b></b><span></span></div><div class="toasts"></div><div class="label"><div class="c"></div><div class="hint">E / Esc to close</div></div>';
     document.body.appendChild(el);
     this.el = el;
     this.cross = el.querySelector('.x');
@@ -67,6 +70,7 @@ export class Hud {
     this.heldBar = el.querySelector('.held .bar');
     this.heldBarI = el.querySelector('.held .bar i');
     this.heldH = el.querySelector('.held .h');
+    this.heldIc = el.querySelector('.held .hic');
     this.moneyEl = el.querySelector('.money');
     this.clockEl = el.querySelector('.clock');
     this.clockB = el.querySelector('.clock b');
@@ -174,6 +178,7 @@ export class Hud {
       const key = it.label + info + hint;
       if (key !== this.last.held) {
         this.heldN.textContent = it.label;
+        this.heldIc.src = it.product ? productIcon(it.product) : it.def ? toolIcon(it.def) : '';
         this.heldI.textContent = info;
         this.heldH.textContent = hint;
         this.last.held = key;

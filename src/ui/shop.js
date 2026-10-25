@@ -3,6 +3,10 @@ import * as THREE from 'three';
 import { PRODUCTS, TOOLS } from '../data/products.js';
 import { LAYOUT } from '../world/layout.js';
 import { spawnProduct, spawnTool } from '../tools/items.js';
+import { productIcon, toolIcon, simpleIcon } from './icons.js';
+
+const FIXES = { surf: 'sticky soda, dirt, shampoo', alk: 'grease, heavy soil', ox: 'wine, coffee, stains', enz: 'urine, pet smell', solv: 'grease, paint, gum, ink', absorb: 'grease, oil', dryc: 'dry clean, sisal, silk', fix: 'colour run, dye lock', fungi: 'mould', cold: 'gum, wax', tannin: 'coffee, tea, wine', reducer: 'red wine dye', chlor: 'bleach', scent: 'smell', acid: 'rinse, neutralise', encap: 'low moisture' };
+const TOOL_FOR = { vacuum: 'dust, hair, powder', brush: 'scrub, hair, mud', squeegee: 'water, drain, extract', scraper: 'gum, wax, mud', iron: 'wax', uvlamp: 'urine, find stains', blower: 'dry, fan' };
 
 const CSS = `
 #shop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,10,14,.5);z-index:6;font:14px/1.4 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;color:#fff}
@@ -79,16 +83,18 @@ export class Shop {
     document.head.appendChild(st);
     const el = document.createElement('div');
     el.id = 'shop';
-    el.innerHTML = '<div class="win"><header><h2>Supplies</h2><div class="money"></div></header><div class="list"></div><footer><span>Orders arrive by courier at the side door in ~12 s.</span><button>Close (E)</button></footer></div>';
+    el.innerHTML = '<div class="win"><header><h2>Supplies</h2><input class="q" type="search" placeholder="Search: wine, grease, foam, vacuum\u2026" spellcheck="false"><div class="money"></div></header><div class="list"></div><footer><span>Orders arrive by courier at the side door in ~12 s.</span><button>Close (Esc)</button></footer></div>';
     document.body.appendChild(el);
     this.el = el;
     this.list = el.querySelector('.list');
     this.moneyEl = el.querySelector('.money');
+    this.q = el.querySelector('.q');
+    this.q.addEventListener('input', () => this.render());
     el.querySelector('button').addEventListener('click', () => this.close());
     el.addEventListener('click', (e) => { if (e.target === el) this.close(); });
     addEventListener('keydown', (e) => {
       if (!this.isOpen) return;
-      if (e.code === 'Escape' || e.code === 'KeyE') this.close();
+      if (e.code === 'Escape' || (e.code === 'KeyE' && e.target !== this.q)) this.close();
     });
     this.isOpen = false;
     this.render();
@@ -97,12 +103,15 @@ export class Shop {
   catalog() {
     const out = [];
     out.push({ sec: 'Chemicals & powders' });
-    for (const [id, p] of Object.entries(PRODUCTS)) out.push({ kind: 'product', id, name: `${p.brand} ${p.name}`, sub: p.blurb, price: p.price, color: p.color });
+    for (const [id, p] of Object.entries(PRODUCTS)) {
+      const tags = Object.keys(p.agents).map((a) => FIXES[a]).filter(Boolean).join(', ');
+      out.push({ kind: 'product', id, name: `${p.brand} ${p.name}`, sub: p.blurb, price: p.price, color: p.color, icon: productIcon(p), tags: `${tags} ${p.form} ${p.container}` });
+    }
     out.push({ sec: 'Tools' });
-    for (const [id, t] of Object.entries(TOOLS)) out.push({ kind: 'tool', id, name: t.name, sub: t.kind, price: t.price, color: '#9aa1a6' });
+    for (const [id, t] of Object.entries(TOOLS)) out.push({ kind: 'tool', id, name: t.name, sub: `For ${TOOL_FOR[t.kind] ?? t.kind}`, price: t.price, color: '#9aa1a6', icon: toolIcon(t), tags: `${TOOL_FOR[t.kind] ?? ''} ${t.kind}` });
     out.push({ sec: 'Equipment' });
-    out.push({ kind: 'cart', id: 'cart', name: 'Platform cart', sub: 'Carries 3 rolls', price: 60, color: '#2f6db5' });
-    out.push({ kind: 'forklift', id: 'forklift', name: 'Forklift with carpet ram', sub: 'Skewer rolls, lift them into trucks', price: 600, color: '#f2b630' });
+    out.push({ kind: 'cart', id: 'cart', name: 'Platform cart', sub: 'Carries 3 rolls', price: 60, color: '#2f6db5', icon: simpleIcon('\u{1F6D2}', '#3bceac'), tags: 'cart trolley transport' });
+    out.push({ kind: 'forklift', id: 'forklift', name: 'Forklift with carpet ram', sub: 'Skewer rolls, lift them into trucks', price: 600, color: '#f2b630', icon: simpleIcon('\u{1F69C}', '#ffd23f'), tags: 'forklift vehicle lift' });
     return out;
   }
 
@@ -110,21 +119,35 @@ export class Shop {
     const money = this.game.economy?.money ?? 0;
     this.moneyEl.textContent = `$${Math.round(money)}`;
     this.list.innerHTML = '';
+    const q = (this.q?.value ?? '').trim().toLowerCase();
+    let sec = null, shown = 0;
     for (const it of this.catalog()) {
       if (it.sec) {
-        const s = document.createElement('div');
-        s.className = 'sec';
-        s.textContent = it.sec;
-        this.list.appendChild(s);
+        sec = it.sec;
         continue;
       }
+      if (q && !`${it.name} ${it.sub} ${it.tags ?? ''}`.toLowerCase().includes(q)) continue;
+      if (sec) {
+        const s = document.createElement('div');
+        s.className = 'sec';
+        s.textContent = sec;
+        this.list.appendChild(s);
+        sec = null;
+      }
+      shown++;
       const d = document.createElement('div');
       d.className = 'it' + (money < it.price ? ' no' : '');
-      d.innerHTML = `<div class="sw" style="background:${it.color}"></div><div class="tx"><b></b><span></span></div><div class="pr">$${it.price}</div>`;
+      d.innerHTML = `<img class="ic" alt="" src="${it.icon ?? ''}"><div class="tx"><b></b><span></span></div><div class="pr">$${it.price}</div>`;
       d.querySelector('b').textContent = it.name;
       d.querySelector('span').textContent = it.sub;
       d.addEventListener('click', () => this.buy(it));
       this.list.appendChild(d);
+    }
+    if (!shown) {
+      const e = document.createElement('div');
+      e.className = 'sec';
+      e.textContent = `Nothing matches \u201c${this.q.value}\u201d`;
+      this.list.appendChild(e);
     }
   }
 
@@ -139,8 +162,10 @@ export class Shop {
 
   open() {
     this.isOpen = true;
+    if (this.q) this.q.value = '';
     this.render();
     this.el.classList.add('on');
+    setTimeout(() => this.q?.focus(), 60);
     this.game.input.unlock();
     this.game.input.autoLock = false;
   }
