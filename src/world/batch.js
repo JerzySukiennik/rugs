@@ -13,7 +13,9 @@ const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
 const _p = new THREE.Vector3();
 const _c = new THREE.Vector3();
+const _cam = new THREE.Vector3();
 const WHITE = new THREE.Color(1, 1, 1);
+const LOD_IN = 2.4 * 2.4, LOD_OUT = 3.0 * 3.0;
 
 const FILL_PARS = `
 #include <batching_pars_vertex>
@@ -109,7 +111,7 @@ function createBatch(kind, minV, minI) {
   b.frustumCulled = false;
   b.perObjectFrustumCulled = true;
   b.sortObjects = kind !== 'opaque';
-  b.castShadow = kind !== 'liquid';
+  b.castShadow = kind === 'opaque';
   b.receiveShadow = true;
   b.renderOrder = kind === 'liquid' ? 1 : kind === 'clear' ? 2 : 0;
   b.userData.rbKind = kind;
@@ -145,6 +147,7 @@ function rebuild(kind) {
     if (u.rbKind !== kind) continue;
     const d = defs.get(u.rbPart);
     u.rbInst = nb.addInstance(geoId(kind, d));
+    u.rbLodLvl = 0;
     u.rbBatch = nb;
     u.rbPrev = null;
     u.rbFillW = null;
@@ -159,9 +162,9 @@ function ensure(scene) {
     scene.add(state.batches[k]);
   }
   const prev = scene.onBeforeRender;
-  scene.onBeforeRender = function (...args) {
-    sync();
-    return prev.apply(this, args);
+  scene.onBeforeRender = function (renderer, sc, camera, target) {
+    sync(camera);
+    return prev.call(this, renderer, sc, camera, target);
   };
 }
 
@@ -184,6 +187,9 @@ function onAdded(ev) {
     const b = state.batches[d.kind];
     u.rbKind = d.kind;
     u.rbInst = b.addInstance(geoId(d.kind, d));
+    u.rbLodLvl = 0;
+    const lo = u.rbLod ? defs.get(u.rbLod) : null;
+    u.rbLoDef = lo && lo.kind === d.kind ? lo : null;
     u.rbBatch = state.batches[d.kind];
     u.rbRoot = root;
     u.rbPrev = null;
@@ -239,7 +245,8 @@ function visibleChain(o, root) {
   return true;
 }
 
-function sync() {
+function sync(camera) {
+  if (camera) _cam.setFromMatrixPosition(camera.matrixWorld);
   for (let k = 0; k < live.length; k++) {
     const o = live[k];
     const u = o.userData;
@@ -250,6 +257,16 @@ function sync() {
     if (!vis) continue;
     const m = u.rbFollow ? followMatrix(o, _m) : o.matrixWorld;
     const e = m.elements;
+    if (u.rbLoDef && camera) {
+      const dx = e[12] - _cam.x, dy = e[13] - _cam.y, dz = e[14] - _cam.z;
+      const d2 = dx * dx + dy * dy + dz * dz;
+      const want = u.rbLodLvl === 0 ? (d2 > LOD_OUT ? 1 : 0) : (d2 < LOD_IN ? 0 : 1);
+      if (want !== u.rbLodLvl) {
+        const dd = want ? u.rbLoDef : defs.get(u.rbPart);
+        b.setGeometryIdAt(u.rbInst, geoId(u.rbKind, dd));
+        u.rbLodLvl = want;
+      }
+    }
     const tex = b._matricesTexture;
     const arr = tex.image.data;
     const off = u.rbInst * 16;

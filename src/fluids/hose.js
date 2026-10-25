@@ -1,7 +1,7 @@
-// Rug Rush fluids: car-wash hose boom (post, swivel arm), verlet hose with retractor and a grabbable spray lance.
+// Rug Rush fluids: car-wash hose boom (ceiling mount on the roof truss, swivel arm), verlet hose with retractor and a grabbable spray lance.
 import * as THREE from 'three';
 import { R, GROUP, groups } from '../core/physics.js';
-import { BAY, floorBaseHeightAt } from '../world/layout.js';
+import { LAYOUT, floorBaseHeightAt } from '../world/layout.js';
 import { TubeMesh, catmull } from './tube.js';
 import { hoseMaterial } from './particleMaterials.js';
 
@@ -80,22 +80,35 @@ export class Hose {
     const steel = new THREE.MeshStandardMaterial({ color: 0xc7ccd1, metalness: 0.85, roughness: 0.32 });
     const dark = new THREE.MeshStandardMaterial({ color: 0x2a2e33, metalness: 0.4, roughness: 0.5 });
     const piv = this.pivot;
-    const postZ = BAY.cz - BAY.half - 0.32;
     const topY = piv.y + 0.38;
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.16, topY + 0.1, 0.16), steel);
-    post.position.set(piv.x, (topY + 0.1) / 2, postZ);
-    post.castShadow = post.receiveShadow = true;
-    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.02, 0.42), dark);
-    foot.position.set(piv.x, 0.01, postZ);
-    const beamLen = Math.abs(piv.z - postZ) + 0.12;
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, beamLen), steel);
-    beam.position.set(piv.x, topY, (piv.z + postZ) / 2 + Math.sign(piv.z - postZ) * 0.04);
-    beam.castShadow = true;
-    const strut = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 1.4), steel);
-    strut.position.set(piv.x, topY - 0.45, postZ + 0.45);
-    strut.rotation.x = Math.atan2(0.9, 1.0) * Math.sign(piv.z - postZ);
-    this.root.add(post, foot, beam, strut);
-    this.physics.staticBox(0.08, (topY + 0.1) / 2, 0.08, { x: piv.x, y: (topY + 0.1) / 2, z: postZ }, null, { friction: 0.5 });
+    const chordY = LAYOUT.hall.chordY ?? 6.3;
+    const drop = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, chordY - topY, 20), steel);
+    drop.position.set(piv.x, (chordY + topY) / 2, piv.z);
+    drop.castShadow = true;
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.025, 0.34), dark);
+    plate.position.set(piv.x, chordY - 0.075, piv.z);
+    const clampA = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.05), dark);
+    clampA.position.set(piv.x, chordY - 0.01, piv.z - 0.12);
+    const clampB = clampA.clone();
+    clampB.position.z = piv.z + 0.12;
+    this.root.add(drop, plate, clampA, clampB);
+    for (const [dx, dz] of [[0, -0.9], [0, 0.9]]) {
+      const a = new THREE.Vector3(piv.x + dx, chordY - 0.06, piv.z + dz);
+      const b2 = new THREE.Vector3(piv.x, topY + 0.55, piv.z);
+      const d = b2.clone().sub(a);
+      const br = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, d.length(), 10), steel);
+      br.position.copy(a).add(b2).multiplyScalar(0.5);
+      br.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+      br.castShadow = true;
+      this.root.add(br);
+    }
+    const bearing = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.09, 24), dark);
+    bearing.position.set(piv.x, topY + 0.02, piv.z);
+    const reel = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.12, 28), new THREE.MeshStandardMaterial({ color: 0xc8322a, roughness: 0.45 }));
+    reel.rotation.z = Math.PI / 2;
+    reel.position.set(piv.x, topY + 0.4, piv.z);
+    reel.castShadow = true;
+    this.root.add(bearing, reel);
     const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, topY - piv.y + 0.06, 20), dark);
     hub.position.set(piv.x, (topY + piv.y) / 2, piv.z);
     this.root.add(hub);

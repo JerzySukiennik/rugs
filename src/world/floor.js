@@ -7,7 +7,7 @@ const A = (TILE - GROUT_W) / 2;
 const BEV_W = 0.0026, BEV_D = 0.0015;
 const TILE_COLOR = new THREE.Color('#f1f2ef');
 const GROUT_COLOR = new THREE.Color('#a7aaa6');
-const WIN = 34;
+const WIN = 30;
 const FRAME = 0.011;
 const _f = new THREE.Vector3();
 const _q = new THREE.Quaternion();
@@ -21,8 +21,8 @@ const UP = new THREE.Vector3(0, 1, 0);
 function tileGeometry() {
   const pos = [], nor = [], idx = [];
   const steps = [];
-  for (let k = 0; k <= 4; k++) {
-    const phi = (k / 4) * (Math.PI / 2);
+  for (let k = 0; k <= 2; k++) {
+    const phi = (k / 2) * (Math.PI / 2);
     steps.push({ inset: BEV_W * (1 - Math.sin(phi)), y: -BEV_D * (1 - Math.cos(phi)), nh: BEV_D * Math.sin(phi), nv: BEV_W * Math.cos(phi) });
   }
   steps.push({ inset: 0, y: -GROUT_DEPTH - 0.0007, nh: 1, nv: 0 });
@@ -125,18 +125,19 @@ vec2 ed = ( 0.5 - abs( fr ) ) * ${TILE.toFixed(4)};
 float gd = min( ed.x, ed.y );
 float fw = max( length( fwidth( vWp.xz ) ), 1e-5 );
 float gw = ${(GROUT_W / 2).toFixed(5)};
-float grout = 1.0 - smoothstep( gw - fw * 0.7, gw + fw * 0.7, gd );
-float farK = clamp( ( fw - gw * 0.6 ) / ( ${TILE.toFixed(4)} * 0.05 ), 0.0, 1.0 );
-grout = mix( grout, ( 2.0 * gw + fw * 0.4 ) / ${TILE.toFixed(4)}, farK );
+float gwe = gw + ${(BEV_W * 0.35).toFixed(5)};
+float grout = fw < 2.0 * gwe ? 1.0 - smoothstep( gwe - fw * 0.5, gwe + fw * 0.5, gd ) : clamp( 2.0 * gwe / fw, 0.0, 1.0 ) * ( 1.0 - smoothstep( fw * 0.5, fw, gd ) );
+float farK = clamp( ( fw - ${TILE.toFixed(4)} * 0.12 ) / ( ${TILE.toFixed(4)} * 0.25 ), 0.0, 1.0 );
+grout = mix( grout, 2.0 * gwe / ${TILE.toFixed(4)}, farK ) * 0.85;
 vec4 td = texelFetch( uTileData, ivec2( tid - uTileOrigin ), 0 );
 float cv = ( td.r - 0.5 ) * 0.06;
 vec3 tileCol = diffuse * ( 1.0 + cv );
-float bev = clamp( 1.0 - ( gd - gw ) / ${BEV_W.toFixed(5)}, 0.0, 1.0 ) * ( 1.0 - grout ) * ( 1.0 - farK );
+float bev = clamp( 1.0 - ( gd - gw ) / ${BEV_W.toFixed(5)}, 0.0, 1.0 ) * ( 1.0 - farK ) * step( fw, gw * 2.0 );
 vec2 bdir = ed.x < ed.y ? vec2( sign( fr.x ), 0.0 ) : vec2( 0.0, sign( fr.y ) );
 vec2 rrTilt = -( td.gb - 0.5 ) * 0.0012 * ( 1.0 - grout );
 vec2 rrGrad = bdir * bev * 0.9 + rrTilt;
 diffuseColor.rgb = mix( tileCol, uGroutCol, grout );
-float rrRough = mix( 0.13 + td.a * 0.06, 0.92, grout );
+float rrRough = mix( 0.2 + td.a * 0.06, 0.92, grout );
 `;
 
 const FAR_NORMAL = `
@@ -149,7 +150,6 @@ const FAR_NORMAL = `
 `;
 
 const GROUT_MAIN = `
-if ( vWp.x < uNear.x || vWp.x > uNear.z || vWp.z < uNear.y || vWp.z > uNear.w ) discard;
 if ( vWp.x > uTrench.x && vWp.x < uTrench.z && vWp.z > uTrench.y && vWp.z < uTrench.w ) discard;
 `;
 
@@ -159,7 +159,7 @@ function worldPosVertex(sh) {
     .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;');
 }
 
-export function buildFloor(root, hall, renderer) {
+export function buildFloor(root, hall) {
   const i0 = Math.floor(hall.minX / TILE), i1 = Math.ceil(hall.maxX / TILE) - 1;
   const j0 = Math.floor(hall.minZ / TILE), j1 = Math.ceil(hall.maxZ / TILE) - 1;
   const NI = i1 - i0 + 1, NJ = j1 - j0 + 1;
@@ -242,12 +242,16 @@ export function buildFloor(root, hall, renderer) {
       .replace('#include <map_fragment>', GROUT_MAIN);
   };
   groutMat.customProgramCacheKey = () => 'rr-floor-grout';
-  const grout = new THREE.Mesh(slabGeometry(hall, -GROUT_DEPTH), groutMat);
+  const groutGeo = new THREE.PlaneGeometry(WIN * TILE, WIN * TILE, WIN, WIN);
+  groutGeo.rotateX(-Math.PI / 2);
+  groutGeo.attributes.position.setUsage(THREE.DynamicDrawUsage);
+  const grout = new THREE.Mesh(groutGeo, groutMat);
+  grout.frustumCulled = false;
   grout.name = 'hallFloorGrout';
   grout.receiveShadow = true;
   root.add(grout);
 
-  const tileMat = new THREE.MeshStandardMaterial({ color: TILE_COLOR, roughness: 0.15, metalness: 0 });
+  const tileMat = new THREE.MeshStandardMaterial({ color: TILE_COLOR, roughness: 0.22, metalness: 0 });
   const cap = WIN * WIN;
   const near = new THREE.InstancedMesh(tileGeometry(), tileMat, cap);
   near.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -298,8 +302,14 @@ export function buildFloor(root, hall, renderer) {
     near.instanceColor.addUpdateRange(0, n * 3);
     near.instanceColor.needsUpdate = true;
     nearRect.set(wi * TILE, wj * TILE, (wi + WIN) * TILE, (wj + WIN) * TILE);
+    const gp = groutGeo.attributes.position;
+    for (let k = 0; k < gp.count; k++) {
+      const ix = k % (WIN + 1), jz = Math.floor(k / (WIN + 1));
+      const x = Math.min(hall.maxX, Math.max(hall.minX, (wi + ix) * TILE)), z = Math.min(hall.maxZ, Math.max(hall.minZ, (wj + jz) * TILE));
+      gp.setXYZ(k, x, floorBaseHeightAt(x, z) - GROUT_DEPTH, z);
+    }
+    gp.needsUpdate = true;
   };
-  void renderer;
   return { near, far, grout, trench, update, meshes: [near, far, grout] };
 }
 
@@ -309,7 +319,7 @@ function buildTrench() {
   const yTop = floorBaseHeightAt(BAY.cx, BAY.cz + t.halfW + FRAME * 0.5);
   const L = t.halfLen * 2;
   const parts = [];
-  const steel = '#c3c8cc', dark = '#3a3d40';
+  const steel = '#c3c8cc';
   for (const s of [-1, 1]) {
     const flange = K.box(L, 0.0025, FRAME, { x: BAY.cx, y: yTop - 0.00125, z: BAY.cz + s * (t.halfW + FRAME / 2) });
     parts.push(K.paint(flange, steel, { r: 0.22, m: 0.95 }));
@@ -333,7 +343,6 @@ function buildTrench() {
   parts.push(K.paint(K.mergeRaw(bars), steel, { r: 0.26, m: 0.95 }));
   const sump = K.cyl(0.05, 0.05, 0.004, 28, { x: BAY.cx + t.halfLen - 0.12, y: y0 - t.depth + 0.003, z: BAY.cz });
   parts.push(K.paint(sump, '#141516', { r: 0.7 }));
-  void dark;
   const mesh = new THREE.Mesh(K.merge(parts), K.vcolorMaterial('rr-trench'));
   mesh.name = 'trenchDrain';
   mesh.receiveShadow = true;

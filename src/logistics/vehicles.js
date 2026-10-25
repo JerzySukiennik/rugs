@@ -2,10 +2,42 @@
 import * as THREE from 'three';
 import { R, GROUP, groups } from '../core/physics.js';
 import { floorBaseHeightAt } from '../world/layout.js';
+import * as K from '../world/kit.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const _v = new THREE.Vector3();
 const _q = new THREE.Quaternion();
+
+let cartGeo = null;
+let cartMat = null;
+function cartMesh() {
+  if (!cartGeo) {
+    const parts = [];
+    const P = (geo, col, o = {}) => parts.push(K.paint(geo, col, o));
+    P(K.roundedBox(1.4, 0.05, 0.75, 0.015, 1).translate(0, 0.22, 0), '#2f6db5', { r: 0.45, m: 0.25 });
+    P(K.box(1.36, 0.008, 0.71, { x: 0, y: 0.249, z: 0 }), '#2a2c2f', { r: 0.95, shade: (x, y, z) => ((Math.round(x / 0.04) + Math.round(z / 0.04)) % 2 ? 0.85 : 1) });
+    for (const s of [-1, 1]) P(K.box(1.4, 0.06, 0.03, { x: 0, y: 0.2, z: s * 0.37 }), '#24569a', { r: 0.45, m: 0.3 });
+    const handle = K.tube([[-0.66, 0.25, 0.33], [-0.68, 0.95, 0.33], [-0.68, 1.06, 0.26], [-0.68, 1.06, -0.26], [-0.68, 0.95, -0.33], [-0.66, 0.25, -0.33]], 0.016, { segs: 40, radial: 10, tension: 0.2 });
+    P(handle, '#b9bfc4', { r: 0.3, m: 0.85 });
+    P(K.cyl(0.024, 0.024, 0.36, 12).rotateX(Math.PI / 2).translate(-0.68, 1.06, 0), '#1d1e20', { r: 0.8 });
+    for (const [x, z] of [[0.6, 0.3], [0.6, -0.3], [-0.6, 0.3], [-0.6, -0.3]]) {
+      P(K.box(0.07, 0.012, 0.07, { x, y: 0.19, z }), '#9aa1a7', { r: 0.4, m: 0.7 });
+      P(K.box(0.012, 0.09, 0.05, { x: x - 0.025, y: 0.14, z }), '#9aa1a7', { r: 0.4, m: 0.7 });
+      P(K.box(0.012, 0.09, 0.05, { x: x + 0.025, y: 0.14, z }), '#9aa1a7', { r: 0.4, m: 0.7 });
+      const wh = K.lathe([[0.04, -0.022], [0.075, -0.022], [0.08, -0.012], [0.08, 0.012], [0.075, 0.022], [0.04, 0.022]], { segs: 18 });
+      wh.rotateZ(Math.PI / 2);
+      wh.translate(x, 0.08, z);
+      P(wh, '#1a1b1d', { r: 0.8 });
+      P(K.cyl(0.035, 0.035, 0.05, 10).rotateZ(Math.PI / 2).translate(x, 0.08, z), '#e2e4e5', { r: 0.4 });
+    }
+    cartGeo = K.merge(parts);
+    cartMat = K.vcolorMaterial('rr-cart');
+  }
+  const m = new THREE.Mesh(cartGeo, cartMat);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
 
 export class Cart {
   constructor(game, pos, yaw = 0) {
@@ -15,24 +47,7 @@ export class Cart {
     this.holdStyle = 'heavy';
     this.grabbable = true;
     const g = new THREE.Group();
-    const m = (c, r = 0.5, me = 0) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: me });
-    const add = (geo, mat, x, y, z) => {
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(x, y, z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      g.add(mesh);
-      return mesh;
-    };
-    add(new THREE.BoxGeometry(1.4, 0.05, 0.75), m('#2f6db5', 0.5, 0.2), 0, 0.22, 0);
-    add(new THREE.BoxGeometry(1.36, 0.01, 0.71), m('#333', 0.9), 0, 0.25, 0);
-    const bar = m('#9aa1a6', 0.3, 0.8);
-    add(new THREE.BoxGeometry(0.04, 0.85, 0.04), bar, -0.68, 0.65, 0.33);
-    add(new THREE.BoxGeometry(0.04, 0.85, 0.04), bar, -0.68, 0.65, -0.33);
-    add(new THREE.BoxGeometry(0.04, 0.04, 0.7), bar, -0.68, 1.06, 0);
-    const wg = new THREE.CylinderGeometry(0.08, 0.08, 0.05, 14);
-    wg.rotateX(Math.PI / 2);
-    for (const [x, z] of [[0.6, 0.3], [0.6, -0.3], [-0.6, 0.3], [-0.6, -0.3]]) add(wg, m('#1a1a1a', 0.8), x, 0.08, z);
+    g.add(cartMesh());
     this.mesh = g;
     game.engine.scene.add(g);
     const q = new THREE.Quaternion().setFromAxisAngle(UP, yaw);
@@ -75,42 +90,90 @@ export class Forklift {
 
   build() {
     const g = new THREE.Group();
-    const m = (c, r = 0.5, me = 0) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: me });
-    const add = (geo, mat, x, y, z, parent = g) => {
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(x, y, z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      parent.add(mesh);
-      return mesh;
+    const parts = [];
+    const P = (geo, col, o = {}) => parts.push(K.paint(geo, col, o));
+    const YEL = '#f2b630', BLK = '#1d1f22', GRY = '#4d5257';
+    const body = K.extrude([[-0.95, 0.25], [1.05, 0.25], [1.25, 0.4], [1.3, 0.75], [1.15, 1.05], [0.75, 1.1], [0.55, 0.95], [-0.45, 0.95], [-0.62, 0.8], [-0.95, 0.8]], 1.1, { bevel: 0.05, bevelSegs: 2, curveSegs: 6 });
+    body.rotateY(-Math.PI / 2);
+    P(body, YEL, { r: 0.4, m: 0.15 });
+    P(K.roundedBox(1.0, 0.25, 0.35, 0.06, 2).translate(0, 0.98, 1.08), YEL, { r: 0.4, m: 0.15 });
+    P(K.box(1.12, 0.06, 1.9, { x: 0, y: 0.28, z: 0.12 }), BLK, { r: 0.7 });
+    for (const s of [-1, 1]) P(K.box(0.02, 0.06, 1.2, { x: s * 0.56, y: 0.7, z: 0.2 }), BLK, { r: 0.6 });
+    P(K.roundedBox(0.52, 0.1, 0.48, 0.04, 2).translate(0, 1.03, 0.38), BLK, { r: 0.8 });
+    P(K.roundedBox(0.48, 0.5, 0.1, 0.04, 2).translate(0, 1.3, 0.64).rotateX(0), BLK, { r: 0.8 });
+    P(K.cyl(0.03, 0.03, 0.42, 8).rotateX(-0.5).translate(0, 1.18, -0.12), GRY, { r: 0.4, m: 0.6 });
+    const sw = new THREE.TorusGeometry(0.17, 0.018, 8, 24);
+    sw.rotateX(Math.PI / 2 - 0.5);
+    sw.translate(0, 1.37, -0.22);
+    P(sw, BLK, { r: 0.6 });
+    P(K.roundedBox(0.7, 0.12, 0.26, 0.03, 2).translate(0, 1.0, -0.32), '#2a2d31', { r: 0.6 });
+    for (const s of [-1, 1]) P(K.box(0.05, 0.3, 0.05, { x: s * 0.2, y: 1.12, z: -0.4 }), GRY, { r: 0.4, m: 0.6 });
+    for (const [x, z] of [[0.5, -0.45], [-0.5, -0.45], [0.5, 0.75], [-0.5, 0.75]]) P(K.box(0.06, 1.55, 0.06, { x, y: 1.68, z }), BLK, { r: 0.5, m: 0.4 });
+    P(K.box(1.06, 0.05, 0.06, { x: 0, y: 2.45, z: -0.45 }), BLK, { r: 0.5, m: 0.4 });
+    P(K.box(1.06, 0.05, 0.06, { x: 0, y: 2.45, z: 0.75 }), BLK, { r: 0.5, m: 0.4 });
+    for (const x of [-0.5, 0.5]) P(K.box(0.06, 0.05, 1.26, { x, y: 2.45, z: 0.15 }), BLK, { r: 0.5, m: 0.4 });
+    for (let i = 1; i < 6; i++) P(K.box(0.02, 0.04, 1.2, { x: -0.5 + i * (1 / 6), y: 2.46, z: 0.15 }), BLK, { r: 0.5, m: 0.4 });
+    P(K.roundedBox(0.16, 0.08, 0.12, 0.02, 1).translate(0.3, 2.52, 0.6), '#f28c1a', { r: 0.3, e: 0.5 });
+    for (const s of [-1, 1]) P(K.roundedBox(0.1, 0.07, 0.04, 0.01, 1).translate(s * 0.4, 2.38, -0.48), '#f4f6f7', { r: 0.2, e: 0.5 });
+    for (const x of [0.36, -0.36]) {
+      P(K.box(0.07, 2.6, 0.12, { x, y: 1.3, z: -0.95 }), GRY, { r: 0.45, m: 0.6 });
+      P(K.box(0.02, 2.6, 0.08, { x: x * 1.12, y: 1.3, z: -0.95 }), '#3a3f45', { r: 0.45, m: 0.6 });
+    }
+    for (const y of [0.4, 1.4, 2.55]) P(K.box(0.8, 0.07, 0.08, { x: 0, y, z: -0.95 }), GRY, { r: 0.45, m: 0.6 });
+    for (const s of [-1, 1]) {
+      P(K.cyl(0.035, 0.035, 0.9, 10).rotateX(0.25).translate(s * 0.3, 0.75, -0.78), '#c9cdd0', { r: 0.25, m: 0.9 });
+      P(K.cyl(0.05, 0.05, 0.5, 10).rotateX(0.25).translate(s * 0.3, 0.45, -0.7), GRY, { r: 0.4, m: 0.6 });
+    }
+    const wheel = (r, w) => {
+      const t = K.lathe([[r * 0.55, -w / 2], [r * 0.92, -w / 2], [r, -w / 2 + 0.03], [r, w / 2 - 0.03], [r * 0.92, w / 2], [r * 0.55, w / 2]], { segs: 22 });
+      t.rotateZ(Math.PI / 2);
+      const hub = K.cyl(r * 0.56, r * 0.56, w * 0.8, 18);
+      hub.rotateZ(Math.PI / 2);
+      return K.merge([K.paint(t, '#151617', { r: 0.9 }), K.paint(hub, '#c9a224', { r: 0.4, m: 0.5 })]);
     };
-    const yel = m('#f2b630', 0.45);
-    add(new THREE.BoxGeometry(1.1, 0.7, 1.9), yel, 0, 0.6, 0.1);
-    add(new THREE.BoxGeometry(1.1, 0.75, 0.45), m('#333', 0.6), 0, 0.65, 1.1);
-    add(new THREE.BoxGeometry(0.55, 0.12, 0.5), m('#1a1a1a', 0.8), 0, 1.0, 0.35);
-    add(new THREE.BoxGeometry(0.5, 0.55, 0.1), m('#1a1a1a', 0.8), 0, 1.3, 0.6);
-    const cage = m('#2b2d30', 0.5, 0.4);
-    for (const [x, z] of [[0.5, -0.45], [-0.5, -0.45], [0.5, 0.75], [-0.5, 0.75]]) add(new THREE.BoxGeometry(0.06, 1.55, 0.06), cage, x, 1.68, z);
-    add(new THREE.BoxGeometry(1.06, 0.05, 1.26), cage, 0, 2.45, 0.15);
-    const mastM = m('#4d5257', 0.4, 0.6);
-    add(new THREE.BoxGeometry(0.08, 2.6, 0.12), mastM, 0.35, 1.3, -0.95);
-    add(new THREE.BoxGeometry(0.08, 2.6, 0.12), mastM, -0.35, 1.3, -0.95);
-    const wg = new THREE.CylinderGeometry(0.3, 0.3, 0.22, 16);
-    wg.rotateZ(Math.PI / 2);
-    for (const [x, z] of [[0.5, -0.6], [-0.5, -0.6]]) add(wg, m('#1a1a1a', 0.85), x, 0.3, z);
-    const rg = new THREE.CylinderGeometry(0.22, 0.22, 0.2, 14);
-    rg.rotateZ(Math.PI / 2);
+    for (const [x, z] of [[0.5, -0.6], [-0.5, -0.6]]) parts.push(wheel(0.3, 0.22).translate(x, 0.3, z));
+    const bodyMesh = new THREE.Mesh(K.merge(parts), K.vcolorMaterial('rr-forklift'));
+    bodyMesh.castShadow = true;
+    bodyMesh.receiveShadow = true;
+    g.add(bodyMesh);
+    const rwMat = bodyMesh.material;
     this.rearWheels = [];
+    const rwGeo = wheel(0.22, 0.2);
     for (const x of [0.48, -0.48]) {
-      const w = add(rg, m('#1a1a1a', 0.85), x, 0.22, 0.95);
+      const w = new THREE.Mesh(rwGeo, rwMat);
+      w.position.set(x, 0.22, 0.95);
+      w.castShadow = true;
+      g.add(w);
       this.rearWheels.push(w);
     }
+    const inner = [];
+    for (const x of [0.27, -0.27]) inner.push(K.paint(K.box(0.06, 2.3, 0.08, { x, y: 1.15, z: -1.0 }), '#5d6268', { r: 0.45, m: 0.6 }));
+    inner.push(K.paint(K.box(0.6, 0.06, 0.07, { x: 0, y: 2.25, z: -1.0 }), '#5d6268', { r: 0.45, m: 0.6 }));
+    this.innerMast = new THREE.Mesh(K.merge(inner), rwMat);
+    this.innerMast.castShadow = true;
+    g.add(this.innerMast);
     const carriage = new THREE.Group();
     g.add(carriage);
-    add(new THREE.BoxGeometry(0.85, 0.35, 0.08), mastM, 0, 0, -1.05, carriage);
-    const ramGeo = new THREE.CylinderGeometry(0.045, 0.03, 2.7, 12);
-    ramGeo.rotateX(Math.PI / 2);
-    add(ramGeo, m('#c3c7cb', 0.25, 0.9), 0, 0, -2.4, carriage);
+    const cp = [];
+    cp.push(K.paint(K.box(0.86, 0.36, 0.08, { x: 0, y: 0, z: -1.06 }), '#3a3f45', { r: 0.45, m: 0.6 }));
+    for (let i = 0; i < 5; i++) cp.push(K.paint(K.box(0.04, 0.5, 0.04, { x: -0.36 + i * 0.18, y: 0.38, z: -1.08 }), '#3a3f45', { r: 0.45, m: 0.6 }));
+    cp.push(K.paint(K.box(0.8, 0.04, 0.04, { x: 0, y: 0.62, z: -1.08 }), '#3a3f45', { r: 0.45, m: 0.6 }));
+    const collar = K.cyl(0.08, 0.06, 0.16, 16);
+    collar.rotateX(Math.PI / 2);
+    collar.translate(0, 0, -1.17);
+    cp.push(K.paint(collar, '#2a2d31', { r: 0.4, m: 0.6 }));
+    const ram = K.cyl(0.03, 0.045, 2.7, 16);
+    ram.rotateX(Math.PI / 2);
+    ram.translate(0, 0, -2.4);
+    cp.push(K.paint(ram, '#d5d9dc', { r: 0.18, m: 0.95 }));
+    const tip = K.cyl(0.001, 0.03, 0.1, 12);
+    tip.rotateX(-Math.PI / 2);
+    tip.translate(0, 0, -3.8);
+    cp.push(K.paint(tip, '#d5d9dc', { r: 0.18, m: 0.95 }));
+    const cm = new THREE.Mesh(K.merge(cp), rwMat);
+    cm.castShadow = true;
+    cm.receiveShadow = true;
+    carriage.add(cm);
     this.carriage = carriage;
     this.mesh = g;
     this.game.engine.scene.add(g);
@@ -270,6 +333,7 @@ export class Forklift {
     this.mesh.position.copy(p);
     this.mesh.rotation.set(0, this.y0 + (this.y1 - this.y0) * alpha, 0);
     this.carriage.position.y = this.lift;
+    this.innerMast.position.y = Math.max(0, this.lift - 0.4) * 0.5;
     for (const w of this.rearWheels) w.rotation.y = this.steer;
     if (this.driver && this.game.input.pressed('KeyE')) this.exitLatch = true;
   }

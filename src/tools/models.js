@@ -11,6 +11,14 @@ const TOOL_IDS = new Map(Object.entries(TOOLS).map(([k, v]) => [v, k]));
 const blueprints = new Map();
 let atlas = null;
 let nextSlot = 0;
+let DQ = 1;
+let SUFFIX = '';
+const LO_Q = 0.38;
+const S = (n, min = 3) => Math.max(min, Math.round(n * DQ));
+
+function def(key, kind, geo) {
+  return define(key + SUFFIX, kind, geo);
+}
 
 const F = {
   rounded: (s) => `800 ${s}px "Arial Rounded MT Bold", "Varela Round", "Trebuchet MS", sans-serif`,
@@ -843,21 +851,21 @@ const SHELL = {
 };
 
 function shellPart(key, geo, L, opaqueColor) {
-  if (L.bottle === 'opaque') return define(key, 'opaque', K.paint(geo, opaqueColor ?? L.body ?? '#f4f4f2', { r: 0.36 }));
+  if (L.bottle === 'opaque') return def(key, 'opaque', K.paint(geo, opaqueColor ?? L.body ?? '#f4f4f2', { r: 0.36 }));
   const s = SHELL[L.bottle] ?? SHELL.clear;
   const col = L.bottle === 'tint' ? L.tint : s.color;
-  return define(key, 'clear', K.paint(geo, col, { r: s.r, a: s.a }));
+  return def(key, 'clear', K.paint(geo, col, { r: s.r, a: s.a }));
 }
 
 function liquidPart(key, geo, p, L) {
   const c = L.liquid ?? p.color;
   const clearish = lum(c) > 0.8;
   const col = clearish ? hexMix(c, '#cfe6ee', 0.3) : c;
-  return define(key, 'liquid', K.paint(geo, col, { r: 0.06, a: clearish ? 0.32 : 0.82, liquid: true }));
+  return def(key, 'liquid', K.paint(geo, col, { r: 0.06, a: clearish ? 0.32 : 0.82, liquid: true }));
 }
 
 function capRings(r, h, y) {
-  return K.ribbedRing(r, h, Math.max(18, Math.round(r * 1600)), 0.00065, y);
+  return K.ribbedRing(r, h, Math.max(10, Math.round(r * 1600 * DQ)), 0.00065, y);
 }
 
 function shiftAll(list, dy) {
@@ -884,7 +892,7 @@ function bpTrigger(id, p, L, slot) {
   ];
   const yn = yb + 0.058, yc = yn + 0.006, H = yc + 0.044;
   const dy = -H / 2;
-  const shell = K.loft(rings, { segs: 48 });
+  const shell = K.loft(rings, { segs: S(48) });
   const liq = K.loft([
     { y: 0.0035, hw: hw - 0.0028, hd: hd - 0.0028, cr: cr - 0.0028 },
     { y: 0.0075, hw: hw - 0.0013, hd: hd - 0.0013, cr: cr - 0.0013 },
@@ -892,16 +900,16 @@ function bpTrigger(id, p, L, slot) {
     { y: yb + 0.012, hw: hw * 0.93 - 0.0013, hd: hd * 0.95 - 0.0013, cr: cr * 0.97 - 0.0013 },
     { y: yb + 0.024, hw: hw * 0.74 - 0.0013, hd: hd * 0.83 - 0.0013, cr: cr * 0.85 - 0.0013 },
     { y: yb + 0.034, hw: 0.022, hd: 0.019, cr: 0.0182 },
-  ], { segs: 40 });
+  ], { segs: S(40) });
   const ly0 = 0.016, ly1 = yb - 0.008;
   const phi = 1.22;
-  const backB = K.band(rings, ly0, ly1, 0.0004, { theta0: -phi, theta1: phi, segs: 40 });
-  const frontB = K.band(rings, ly0, ly1, 0.0004, { theta0: Math.PI - phi, theta1: Math.PI + phi, segs: 40 });
+  const backB = K.band(rings, ly0, ly1, 0.0004, { theta0: -phi, theta1: phi, segs: S(40) });
+  const frontB = K.band(rings, ly0, ly1, 0.0004, { theta0: Math.PI - phi, theta1: Math.PI + phi, segs: S(40) });
   const mid = K.ringAt(rings, (ly0 + ly1) / 2);
   const aspect = (ly1 - ly0) / K.arcLength(mid, -phi, phi);
-  const tubeG = K.tube([[0, yn, 0.002], [0, yb * 0.5, 0.004], [0, 0.012, -0.004], [0.0, 0.0045, -0.016]], 0.0021, { segs: 24, radial: 6 });
+  const tubeG = K.tube([[0, yn, 0.002], [0, yb * 0.5, 0.004], [0, 0.012, -0.004], [0.0, 0.0045, -0.016]], 0.0021, { segs: S(24), radial: S(6, 4) });
   const collar = capRings(0.0168, 0.022, yn - 0.005);
-  const topDisk = K.cyl(0.0158, 0.0168, 0.002, 28, { y: yc - 0.001 });
+  const topDisk = K.cyl(0.0158, 0.0168, 0.002, S(28), { y: yc - 0.001 });
   const shroud = K.extrude([
     [-0.0145, 0.002],
     [-0.0175, 0.016, -0.0165, 0.028],
@@ -911,12 +919,12 @@ function bpTrigger(id, p, L, slot) {
     [0.053, 0.019],
     [0.050, 0.0135, 0.040, 0.0135],
     [0.022, 0.012, 0.0135, 0.002],
-  ], 0.03, { bevel: 0.004, bevelSegs: 3, curveSegs: 10 });
+  ], 0.03, { bevel: 0.004, bevelSegs: S(3, 1), curveSegs: S(10, 2) });
   shroud.rotateY(Math.PI / 2);
   shroud.translate(0, yc, 0);
-  const nozzleCap = K.roundedBox(0.017, 0.017, 0.011, 0.003, 2);
+  const nozzleCap = K.roundedBox(0.017, 0.017, 0.011, 0.003, S(2, 1));
   nozzleCap.translate(0, yc + 0.025, -0.0615);
-  const orifice = K.cyl(0.0017, 0.0017, 0.0012, 10);
+  const orifice = K.cyl(0.0017, 0.0017, 0.0012, S(10));
   orifice.rotateX(Math.PI / 2);
   orifice.translate(0, yc + 0.025, -0.0672);
   const lever = K.extrude([
@@ -926,18 +934,18 @@ function bpTrigger(id, p, L, slot) {
     [-0.009, -0.0525, -0.0035, -0.0525],
     [0.0015, -0.05, 0.001, -0.04],
     [-0.0005, -0.026, 0.0045, -0.012],
-  ], 0.016, { bevel: 0.0025, bevelSegs: 2, curveSegs: 8 });
+  ], 0.016, { bevel: 0.0025, bevelSegs: S(2, 1), curveSegs: S(8, 2) });
   lever.rotateY(Math.PI / 2);
   const all = [shell, liq, backB, frontB, tubeG, collar, topDisk, shroud, nozzleCap, orifice];
   shiftAll(all, dy);
   const head = L.head ?? '#ffffff', trig = L.trig ?? head;
   const parts = [
     { key: shellPart(`p:${id}:shell`, shell, L) },
-    { key: define(`p:${id}:label`, 'opaque', K.merge([
+    { key: def(`p:${id}:label`, 'opaque', K.merge([
       K.paint(backB, '#ffffff', { r: 0.42, uvRect: slotRect(slot, 0, 0.5) }),
       K.paint(frontB, '#ffffff', { r: 0.42, uvRect: slotRect(slot, 0.5, 1) }),
     ])) },
-    { key: define(`p:${id}:head`, 'opaque', K.merge([
+    { key: def(`p:${id}:head`, 'opaque', K.merge([
       K.paint(collar, head, { r: 0.42 }),
       K.paint(topDisk, head, { r: 0.42 }),
       K.paint(shroud, head, { r: 0.32 }),
@@ -945,7 +953,7 @@ function bpTrigger(id, p, L, slot) {
       K.paint(orifice, '#202020', { r: 0.6 }),
       K.paint(tubeG, '#eef2f0', { r: 0.3 }),
     ])) },
-    { key: define(`p:${id}:trigger`, 'opaque', K.paint(lever, trig, { r: 0.36 })), name: 'trigger', pos: [0, yc + 0.0115 + dy, -0.041] },
+    { key: def(`p:${id}:trigger`, 'opaque', K.paint(lever, trig, { r: 0.36 })), name: 'trigger', pos: [0, yc + 0.0115 + dy, -0.041] },
   ];
   const liquids = [];
   if (L.bottle !== 'opaque') {
@@ -958,29 +966,29 @@ function bpAerosol(id, p, L, slot) {
   const big = p.capacity > 0.45;
   const r = big ? 0.0325 : 0.0275, hb = big ? 0.205 : 0.168;
   const bare = '#c9ced3';
-  const bottom = K.lathe([[0.001, 0.011], [r * 0.55, 0.0075], [r - 0.0035, 0.0012], [r - 0.0012, 0.0], [r - 0.0002, 0.0018], [r + 0.0004, 0.004], [r, 0.0075], [r, 0.009]], { segs: 48 });
-  const body = K.lathe([[r, 0.009], [r, hb - 0.004]], { segs: 64 });
-  const top = K.lathe([[r, hb - 0.004], [r + 0.0005, hb], [r, hb + 0.003], [r * 0.93, hb + 0.011], [r * 0.78, hb + 0.019], [r * 0.6, hb + 0.025], [0.0145, hb + 0.0295], [0.0142, hb + 0.0315]], { segs: 48 });
-  const curl = new THREE.TorusGeometry(0.0134, 0.0017, 8, 40);
+  const bottom = K.lathe([[0.001, 0.011], [r * 0.55, 0.0075], [r - 0.0035, 0.0012], [r - 0.0012, 0.0], [r - 0.0002, 0.0018], [r + 0.0004, 0.004], [r, 0.0075], [r, 0.009]], { segs: S(48) });
+  const body = K.lathe([[r, 0.009], [r, hb - 0.004]], { segs: S(64) });
+  const top = K.lathe([[r, hb - 0.004], [r + 0.0005, hb], [r, hb + 0.003], [r * 0.93, hb + 0.011], [r * 0.78, hb + 0.019], [r * 0.6, hb + 0.025], [0.0145, hb + 0.0295], [0.0142, hb + 0.0315]], { segs: S(48) });
+  const curl = new THREE.TorusGeometry(0.0134, 0.0017, S(8, 4), S(40));
   curl.rotateX(Math.PI / 2);
   curl.translate(0, hb + 0.032, 0);
-  const cup = K.lathe([[0.0125, hb + 0.0325], [0.0105, hb + 0.0305], [0.004, hb + 0.0295], [0.0028, hb + 0.032], [0.0026, hb + 0.036]], { segs: 32 });
+  const cup = K.lathe([[0.0125, hb + 0.0325], [0.0105, hb + 0.0305], [0.004, hb + 0.0295], [0.0028, hb + 0.032], [0.0026, hb + 0.036]], { segs: S(32) });
   const parts = [];
   let H, nozzle;
   const act = [];
   if (big) {
-    const base = K.lathe([[0.0118, hb + 0.034], [0.0118, hb + 0.046], [0.0105, hb + 0.049], [0.0, hb + 0.05]], { segs: 32 });
-    const spout = K.tube([[0, hb + 0.044, -0.004], [0, hb + 0.046, -0.02], [0, hb + 0.04, -0.036]], 0.0048, { segs: 12, radial: 12 });
-    const tip = K.cyl(0.0052, 0.0048, 0.004, 12);
+    const base = K.lathe([[0.0118, hb + 0.034], [0.0118, hb + 0.046], [0.0105, hb + 0.049], [0.0, hb + 0.05]], { segs: S(32) });
+    const spout = K.tube([[0, hb + 0.044, -0.004], [0, hb + 0.046, -0.02], [0, hb + 0.04, -0.036]], 0.0048, { segs: S(12), radial: S(12, 4) });
+    const tip = K.cyl(0.0052, 0.0048, 0.004, S(12));
     tip.rotateX(-Math.PI / 2 + 0.35);
     tip.translate(0, hb + 0.0395, -0.037);
     act.push(K.paint(base, L.cap, { r: 0.35 }), K.paint(spout, L.cap, { r: 0.35 }), K.paint(tip, '#d8dadc', { r: 0.4 }));
     H = hb + 0.05;
     nozzle = [0, hb + 0.038, -0.04];
   } else {
-    const btn = K.lathe([[0.0102, hb + 0.034], [0.0102, hb + 0.046], [0.009, hb + 0.0495], [0.0, hb + 0.051]], { segs: 32 });
-    const pad = K.cyl(0.0088, 0.0088, 0.0012, 24, { y: hb + 0.0505 });
-    const nz = K.cyl(0.0022, 0.0022, 0.004, 10);
+    const btn = K.lathe([[0.0102, hb + 0.034], [0.0102, hb + 0.046], [0.009, hb + 0.0495], [0.0, hb + 0.051]], { segs: S(32) });
+    const pad = K.cyl(0.0088, 0.0088, 0.0012, S(24), { y: hb + 0.0505 });
+    const nz = K.cyl(0.0022, 0.0022, 0.004, S(10));
     nz.rotateX(Math.PI / 2);
     nz.translate(0, hb + 0.042, -0.0105);
     act.push(K.paint(btn, L.cap, { r: 0.3 }), K.paint(pad, '#e8eaec', { r: 0.6 }), K.paint(nz, '#1b1b1b', { r: 0.5 }));
@@ -991,7 +999,7 @@ function bpAerosol(id, p, L, slot) {
   const all = [bottom, body, top, curl, cup];
   shiftAll(all, dy);
   for (const a of act) a.translate(0, dy, 0);
-  parts.push({ key: define(`p:${id}:can`, 'opaque', K.merge([
+  parts.push({ key: def(`p:${id}:can`, 'opaque', K.merge([
     K.paint(bottom, bare, { r: 0.28, m: 0.9 }),
     K.paint(top, bare, { r: 0.24, m: 0.92 }),
     K.paint(curl, '#d6d9dc', { r: 0.22, m: 0.95 }),
@@ -1023,9 +1031,9 @@ function bpJug(id, p, L, slot) {
   const capH = L.word === 'Klorin' ? 0.03 : 0.024;
   const H = hb + 0.066 + capH - 0.004;
   const dy = -H / 2;
-  const shell = K.loft(rings, { segs: 48 });
+  const shell = K.loft(rings, { segs: S(48) });
   const hr = big ? 0.0105 : 0.0088;
-  const handle = K.tube([[hw * 0.05, hb + 0.03, 0], [hw * 0.4, hb + 0.06, 0], [hw * 0.82, hb + 0.052, 0], [hw + 0.006, hb + 0.012, 0], [hw + 0.002, hb - 0.03, 0], [hw * 0.9, hb - 0.055, 0]], hr, { segs: 40, radial: 12, tension: 0.5 });
+  const handle = K.tube([[hw * 0.05, hb + 0.03, 0], [hw * 0.4, hb + 0.06, 0], [hw * 0.82, hb + 0.052, 0], [hw + 0.006, hb + 0.012, 0], [hw + 0.002, hb - 0.03, 0], [hw * 0.9, hb - 0.055, 0]], hr, { segs: S(40), radial: S(12, 4), tension: 0.5 });
   const liq = K.loft([
     { y: 0.0035, hw: hw - 0.0035, hd: hd - 0.0035, cr: cr - 0.0035 },
     { y: 0.009, hw: hw - 0.0014, hd: hd - 0.0014, cr: cr - 0.0014 },
@@ -1033,16 +1041,16 @@ function bpJug(id, p, L, slot) {
     { y: hb + 0.016, hw: hw * 0.93 - 0.0014, hd: hd * 0.95 - 0.0014, cr: cr * 0.95 - 0.0014 },
     { y: hb + 0.031, hw: hw * 0.68 - 0.0014, hd: hd * 0.8 - 0.0014, cr: cr * 0.8 - 0.0014, x: -hw * 0.12 },
     { y: hb + 0.043, hw: 0.027, hd: 0.024, cr: 0.022, x: xn * 0.8 },
-  ], { segs: 40 });
+  ], { segs: S(40) });
   const ly0 = 0.018, ly1 = hb - 0.014;
   const phi = 0.95;
-  const backB = K.band(rings, ly0, ly1, 0.0005, { theta0: -phi, theta1: phi, segs: 40 });
-  const frontB = K.band(rings, ly0, ly1, 0.0005, { theta0: Math.PI - phi, theta1: Math.PI + phi, segs: 40 });
+  const backB = K.band(rings, ly0, ly1, 0.0005, { theta0: -phi, theta1: phi, segs: S(40) });
+  const frontB = K.band(rings, ly0, ly1, 0.0005, { theta0: Math.PI - phi, theta1: Math.PI + phi, segs: S(40) });
   const aspect = (ly1 - ly0) / K.arcLength(K.ringAt(rings, (ly0 + ly1) / 2), -phi, phi);
   const cap = capRings(0.0215, capH, hb + 0.066 + capH / 2 - 0.006);
   cap.translate(xn, 0, 0);
-  const capTop = K.cyl(0.0205, 0.0213, 0.002, 36, { x: xn, y: hb + 0.066 + capH - 0.005 });
-  const ring = K.cyl(0.0222, 0.0222, 0.004, 36, { x: xn, y: hb + 0.059 });
+  const capTop = K.cyl(0.0205, 0.0213, 0.002, S(36), { x: xn, y: hb + 0.066 + capH - 0.005 });
+  const ring = K.cyl(0.0222, 0.0222, 0.004, S(36), { x: xn, y: hb + 0.059 });
   const all = [shell, handle, liq, backB, frontB, cap, capTop, ring];
   shiftAll(all, dy);
   const shellGeo = K.merge([K.paint(shell, '#fff'), K.paint(handle, '#fff')]);
@@ -1051,7 +1059,7 @@ function bpJug(id, p, L, slot) {
   const capCol = L.cap;
   const parts = [
     { key: shellPart(`p:${id}:shell`, shellGeo, L) },
-    { key: define(`p:${id}:label`, 'opaque', K.merge([
+    { key: def(`p:${id}:label`, 'opaque', K.merge([
       K.paint(backB, '#ffffff', { r: 0.42, uvRect: slotRect(slot, 0, 0.5) }),
       K.paint(frontB, '#ffffff', { r: 0.42, uvRect: slotRect(slot, 0.5, 1) }),
       K.paint(cap, capCol, { r: 0.4 }),
@@ -1076,12 +1084,12 @@ function bpJerrycan(id, p, L, slot) {
   ];
   const top = hb + 0.018;
   const zn = -hd * 0.42;
-  const neck = K.lathe([[0.027, top - 0.004], [0.026, top + 0.004], [0.0225, top + 0.01], [0.0215, top + 0.026]], { segs: 36 });
+  const neck = K.lathe([[0.027, top - 0.004], [0.026, top + 0.004], [0.0225, top + 0.01], [0.0215, top + 0.026]], { segs: S(36) });
   neck.translate(0, 0, zn);
   const capY = top + 0.026;
   const cap = capRings(0.026, 0.028, capY + 0.008);
   cap.translate(0, 0, zn);
-  const capTop = K.cyl(0.0248, 0.0258, 0.002, 40, { y: capY + 0.022, z: zn });
+  const capTop = K.cyl(0.0248, 0.0258, 0.002, S(40), { y: capY + 0.022, z: zn });
   const tamper = capRings(0.0262, 0.005, capY - 0.004);
   tamper.translate(0, 0, zn);
   const hz = hd * 0.38;
@@ -1092,7 +1100,7 @@ function bpJerrycan(id, p, L, slot) {
     [0.074, 0.047, 0.05, 0.048],
     [-0.05, 0.048],
     [-0.074, 0.047, -0.078, 0.022],
-  ], 0.026, { bevel: 0.006, bevelSegs: 3, curveSegs: 8, holes: [[
+  ], 0.026, { bevel: 0.006, bevelSegs: S(3, 1), curveSegs: S(8, 2), holes: [[
     [-0.056, 0.012],
     [0.056, 0.012],
     [0.06, 0.03, 0.045, 0.031],
@@ -1100,14 +1108,14 @@ function bpJerrycan(id, p, L, slot) {
     [-0.06, 0.03, -0.056, 0.012],
   ]] });
   handle.translate(0, top - 0.006, hz);
-  const shell = K.loft(rings, { segs: 52 });
+  const shell = K.loft(rings, { segs: S(52) });
   const liq = K.loft([
     { y: 0.0035, hw: hw - 0.0045, hd: hd - 0.0045, cr: cr - 0.0035 },
     { y: 0.009, hw: hw - 0.0016, hd: hd - 0.0016, cr: cr - 0.0016 },
     { y: hb, hw: hw * 0.995 - 0.0016, hd: hd * 0.99 - 0.0016, cr: cr - 0.0016 },
     { y: hb + 0.011, hw: hw * 0.975 - 0.0016, hd: hd * 0.96 - 0.0016, cr: cr * 1.15 - 0.0016 },
     { y: hb + 0.016, hw: hw * 0.94 - 0.0016, hd: hd * 0.91 - 0.0016, cr: cr * 1.2 - 0.0016 },
-  ], { segs: 44 });
+  ], { segs: S(44) });
   const pw = 2 * (hw - cr) + 0.004, ly0 = 0.028, ly1 = hb - 0.016, ph = ly1 - ly0;
   const back = new THREE.PlaneGeometry(pw, ph);
   back.translate(0, (ly0 + ly1) / 2, hd + 0.0006);
@@ -1128,7 +1136,7 @@ function bpJerrycan(id, p, L, slot) {
   shellGeo.deleteAttribute('mat');
   const parts = [
     { key: shellPart(`p:${id}:shell`, shellGeo, L) },
-    { key: define(`p:${id}:label`, 'opaque', K.merge([
+    { key: def(`p:${id}:label`, 'opaque', K.merge([
       K.paint(back, '#ffffff', { r: 0.45, uvRect: slotRect(slot, 0, 0.5) }),
       K.paint(front, '#ffffff', { r: 0.45, uvRect: slotRect(slot, 0.5, 1) }),
       K.paint(cap, L.cap, { r: 0.42 }),
@@ -1146,19 +1154,19 @@ function bpTub(id, p, L, slot) {
   const sz = p.capacity >= 2 ? 2 : p.capacity >= 1.5 ? 1.5 : 1;
   const r = sz === 2 ? 0.088 : sz === 1.5 ? 0.08 : 0.072, h = sz === 2 ? 0.145 : sz === 1.5 ? 0.13 : 0.115;
   const rb = r * 0.9;
-  const body = K.lathe([[0.001, 0.003], [rb - 0.006, 0.003], [rb - 0.002, 0.0005], [rb, 0.003], [rb + (r - rb) * 0.06, 0.008]], { segs: 56 });
-  const wall = K.lathe([[rb + (r - rb) * 0.06, 0.008], [r - (r - rb) * 0.1, h - 0.02], [r, h - 0.014]], { segs: 64 });
+  const body = K.lathe([[0.001, 0.003], [rb - 0.006, 0.003], [rb - 0.002, 0.0005], [rb, 0.003], [rb + (r - rb) * 0.06, 0.008]], { segs: S(56) });
+  const wall = K.lathe([[rb + (r - rb) * 0.06, 0.008], [r - (r - rb) * 0.1, h - 0.02], [r, h - 0.014]], { segs: S(64) });
   const ly0 = 0.012, ly1 = h - 0.024;
-  const lab = K.lathe([[rb + (r - rb) * (ly0 / h) + 0.0006, ly0], [rb + (r - rb) * (ly1 / h) + 0.0006, ly1]], { segs: 64 });
-  const lidSkirt = K.ribbedRing(r + 0.0045, 0.022, 70, 0.0007, h - 0.004);
-  const lidTop = K.lathe([[r + 0.0045, h + 0.007], [r + 0.002, h + 0.0098], [r - 0.004, h + 0.0102], [r - 0.008, h + 0.0085], [r - 0.012, h + 0.0085], [r - 0.014, h + 0.0098], [0.001, h + 0.0098]], { segs: 64 });
-  const tab = K.roundedBox(0.03, 0.006, 0.012, 0.002, 2);
+  const lab = K.lathe([[rb + (r - rb) * (ly0 / h) + 0.0006, ly0], [rb + (r - rb) * (ly1 / h) + 0.0006, ly1]], { segs: S(64) });
+  const lidSkirt = K.ribbedRing(r + 0.0045, 0.022, S(70, 10), 0.0007, h - 0.004);
+  const lidTop = K.lathe([[r + 0.0045, h + 0.007], [r + 0.002, h + 0.0098], [r - 0.004, h + 0.0102], [r - 0.008, h + 0.0085], [r - 0.012, h + 0.0085], [r - 0.014, h + 0.0098], [0.001, h + 0.0098]], { segs: S(64) });
+  const tab = K.roundedBox(0.03, 0.006, 0.012, 0.002, S(2, 1));
   tab.translate(0, h - 0.012, -(r + 0.009));
   const H = h + 0.0105;
   const dy = -H / 2;
   const all = [body, wall, lab, lidSkirt, lidTop, tab];
   shiftAll(all, dy);
-  const parts = [{ key: define(`p:${id}:tub`, 'opaque', K.merge([
+  const parts = [{ key: def(`p:${id}:tub`, 'opaque', K.merge([
     K.paint(body, '#f6f6f2', { r: 0.42 }),
     K.paint(wall, '#f6f6f2', { r: 0.4 }),
     K.paint(lab, '#ffffff', { r: 0.38, uvRect: slotRect(slot, 0, 1) }),
@@ -1174,22 +1182,22 @@ function bpTub(id, p, L, slot) {
 function bpShaker(id, p, L, slot) {
   const small = p.capacity < 0.9;
   const r = small ? 0.04 : 0.045, h = small ? 0.158 : 0.18;
-  const rim = K.lathe([[0.001, 0.0005], [r - 0.003, 0.0005], [r + 0.0009, 0.002], [r + 0.0011, 0.006], [r + 0.0003, 0.0075]], { segs: 48 });
-  const paper = K.lathe([[r, 0.0065], [r, h - 0.01]], { segs: 64 });
-  const lid = K.lathe([[r + 0.0003, h - 0.013], [r + 0.0014, h - 0.012], [r + 0.0014, h + 0.004], [r - 0.001, h + 0.0085], [r - 0.004, h + 0.0092]], { segs: 48 });
-  const top = new THREE.CircleGeometry(r - 0.004, 40);
+  const rim = K.lathe([[0.001, 0.0005], [r - 0.003, 0.0005], [r + 0.0009, 0.002], [r + 0.0011, 0.006], [r + 0.0003, 0.0075]], { segs: S(48) });
+  const paper = K.lathe([[r, 0.0065], [r, h - 0.01]], { segs: S(64) });
+  const lid = K.lathe([[r + 0.0003, h - 0.013], [r + 0.0014, h - 0.012], [r + 0.0014, h + 0.004], [r - 0.001, h + 0.0085], [r - 0.004, h + 0.0092]], { segs: S(48) });
+  const top = new THREE.CircleGeometry(r - 0.004, S(40));
   top.rotateX(-Math.PI / 2);
   top.translate(0, h + 0.0092, 0);
   const dr = decalRect(256, 0, 128, 128);
-  const flap = new THREE.CylinderGeometry(r - 0.006, r - 0.006, 0.0016, 32, 1, false, Math.PI * 0.5, Math.PI);
+  const flap = new THREE.CylinderGeometry(r - 0.006, r - 0.006, 0.0016, S(32), 1, false, Math.PI * 0.5, Math.PI);
   flap.translate(0, h + 0.0101, 0);
-  const grip = K.roundedBox(0.014, 0.0026, 0.006, 0.0012, 1);
+  const grip = K.roundedBox(0.014, 0.0026, 0.006, 0.0012, S(1, 1));
   grip.translate(0, h + 0.0115, -(r - 0.012));
   const H = h + 0.011;
   const dy = -H / 2;
   const all = [rim, paper, lid, top, flap, grip];
   shiftAll(all, dy);
-  const parts = [{ key: define(`p:${id}:shaker`, 'opaque', K.merge([
+  const parts = [{ key: def(`p:${id}:shaker`, 'opaque', K.merge([
     K.paint(rim, '#b9bdc1', { r: 0.32, m: 0.85 }),
     K.paint(paper, '#ffffff', { r: 0.72, uvRect: slotRect(slot, 0, 1) }),
     K.paint(lid, L.cap, { r: 0.38 }),
@@ -1212,53 +1220,53 @@ function bpFoamer(id, p, L, slot) {
     { y: h - 0.004, hw: 0.044, hd: 0.044, cr: 0.044 },
     { y: h + 0.006, hw: 0.042, hd: 0.042, cr: 0.042 },
   ];
-  const tank = K.loft(rings, { segs: 56 });
+  const tank = K.loft(rings, { segs: S(56) });
   const liq = K.loft([
     { y: 0.004, hw: r - 0.004, hd: r - 0.004, cr: r - 0.004 },
     { y: 0.012, hw: r - 0.0016, hd: r - 0.0016, cr: r - 0.0016 },
     { y: h - 0.032, hw: r - 0.0016, hd: r - 0.0016, cr: r - 0.0016 },
     { y: h - 0.016, hw: r * 0.88 - 0.0016, hd: r * 0.88 - 0.0016, cr: r * 0.88 - 0.0016 },
-  ], { segs: 44 });
-  const foot = K.lathe([[0.001, -0.002], [r - 0.004, -0.002], [r + 0.0025, 0.0], [r + 0.0028, 0.028], [r + 0.001, 0.03]], { segs: 56 });
+  ], { segs: S(44) });
+  const foot = K.lathe([[0.001, -0.002], [r - 0.004, -0.002], [r + 0.0025, 0.0], [r + 0.0028, 0.028], [r + 0.001, 0.03]], { segs: S(56) });
   const collar = capRings(0.047, 0.032, h + 0.002);
-  const collarTop = K.cyl(0.04, 0.046, 0.004, 40, { y: h + 0.02 });
-  const pumpTube = K.cyl(0.017, 0.017, h - 0.03, 24, { y: 0.03 + (h - 0.03) / 2 });
-  const rod = K.cyl(0.0075, 0.0075, 0.05, 16, { y: h + 0.045 });
-  const knob = K.roundedBox(0.1, 0.024, 0.032, 0.01, 3);
+  const collarTop = K.cyl(0.04, 0.046, 0.004, S(40), { y: h + 0.02 });
+  const pumpTube = K.cyl(0.017, 0.017, h - 0.03, S(24), { y: 0.03 + (h - 0.03) / 2 });
+  const rod = K.cyl(0.0075, 0.0075, 0.05, S(16), { y: h + 0.045 });
+  const knob = K.roundedBox(0.1, 0.024, 0.032, 0.01, S(3, 1));
   knob.translate(0, h + 0.078, 0);
-  const valve = K.cyl(0.006, 0.006, 0.014, 14);
+  const valve = K.cyl(0.006, 0.006, 0.014, S(14));
   valve.rotateZ(Math.PI / 2);
   valve.translate(-0.05, h + 0.004, 0);
-  const valveCap = K.cyl(0.0075, 0.0075, 0.004, 14);
+  const valveCap = K.cyl(0.0075, 0.0075, 0.004, S(14));
   valveCap.rotateZ(Math.PI / 2);
   valveCap.translate(-0.058, h + 0.004, 0);
-  const hose = K.tube([[0.044, h + 0.006, 0.0], [0.062, h + 0.004, 0.012], [0.085, h - 0.05, 0.03], [0.094, 0.09, 0.012], [0.086, 0.04, -0.03], [0.085, 0.052, -0.055]], 0.0055, { segs: 48, radial: 10 });
-  const grip = K.roundedBox(0.022, 0.07, 0.03, 0.008, 2);
+  const hose = K.tube([[0.044, h + 0.006, 0.0], [0.062, h + 0.004, 0.012], [0.085, h - 0.05, 0.03], [0.094, 0.09, 0.012], [0.086, 0.04, -0.03], [0.085, 0.052, -0.055]], 0.0055, { segs: S(48), radial: S(10, 4) });
+  const grip = K.roundedBox(0.022, 0.07, 0.03, 0.008, S(2, 1));
   grip.rotateX(0.35);
   grip.translate(0.085, 0.055, -0.06);
-  const lever = K.roundedBox(0.012, 0.045, 0.01, 0.003, 1);
+  const lever = K.roundedBox(0.012, 0.045, 0.01, 0.003, S(1, 1));
   lever.rotateX(0.2);
   lever.translate(0.085, 0.058, -0.083);
-  const wand = K.cyl(0.0055, 0.0055, 0.26, 14);
+  const wand = K.cyl(0.0055, 0.0055, 0.26, S(14));
   wand.rotateX(Math.PI / 2);
   wand.translate(0.085, 0.075, -0.205);
-  const ferrule = K.cyl(0.0085, 0.0085, 0.02, 14);
+  const ferrule = K.cyl(0.0085, 0.0085, 0.02, S(14));
   ferrule.rotateX(Math.PI / 2);
   ferrule.translate(0.085, 0.075, -0.082);
-  const tip = K.roundedBox(0.026, 0.012, 0.028, 0.004, 2);
+  const tip = K.roundedBox(0.026, 0.012, 0.028, 0.004, S(2, 1));
   tip.translate(0.085, 0.075, -0.345);
   const ly0 = 0.04, ly1 = h - 0.045;
   const phi = 1.0;
-  const backB = K.band(rings, ly0, ly1, 0.0005, { theta0: -phi, theta1: phi, segs: 40 });
-  const frontB = K.band(rings, ly0, ly1, 0.0005, { theta0: Math.PI - phi, theta1: Math.PI + phi, segs: 40 });
+  const backB = K.band(rings, ly0, ly1, 0.0005, { theta0: -phi, theta1: phi, segs: S(40) });
+  const frontB = K.band(rings, ly0, ly1, 0.0005, { theta0: Math.PI - phi, theta1: Math.PI + phi, segs: S(40) });
   const aspect = (ly1 - ly0) / (2 * phi * r);
   const H = h + 0.09;
   const dy = -H / 2 + 0.002;
   const all = [tank, liq, foot, collar, collarTop, pumpTube, rod, knob, valve, valveCap, hose, grip, lever, wand, ferrule, tip, backB, frontB];
   shiftAll(all, dy);
   const parts = [
-    { key: define(`p:${id}:shell`, 'clear', K.paint(tank, SHELL.natural.color, { r: SHELL.natural.r, a: 0.46 })) },
-    { key: define(`p:${id}:body`, 'opaque', K.merge([
+    { key: def(`p:${id}:shell`, 'clear', K.paint(tank, SHELL.natural.color, { r: SHELL.natural.r, a: 0.46 })) },
+    { key: def(`p:${id}:body`, 'opaque', K.merge([
       K.paint(backB, '#ffffff', { r: 0.42, uvRect: slotRect(slot, 0, 0.5) }),
       K.paint(frontB, '#ffffff', { r: 0.42, uvRect: slotRect(slot, 0.5, 1) }),
       K.paint(foot, '#1d1e20', { r: 0.6 }),
@@ -1289,7 +1297,17 @@ function productBlueprint(id, p) {
   ensureAtlas();
   const L = LOOK[id] ?? { font: 'geo', word: p.brand, bg: '#ffffff', brand: p.color, accent: p.color, ink: '#222', motif: 'bubbles', hz: [], claim: '', bottle: 'opaque', body: p.color, cap: '#ffffff', band: p.color };
   const slot = nextSlot < SLOT_KRAFT ? nextSlot++ : 0;
-  const bp = (BUILD[p.container] ?? BUILD.trigger)(id, p, L, slot);
+  const build = BUILD[p.container] ?? BUILD.trigger;
+  const bp = build(id, p, L, slot);
+  try {
+    DQ = LO_Q;
+    SUFFIX = '~lo';
+    const lo = build(id, p, L, slot);
+    bp.parts.forEach((d, i) => { d.lo = lo.parts[i]?.key ?? null; });
+  } finally {
+    DQ = 1;
+    SUFFIX = '';
+  }
   drawProductLabel(slot, id, p, L, bp);
   blueprints.set(key, bp);
   return bp;
@@ -1315,6 +1333,7 @@ export function containerModel(p) {
   const liquids = [];
   for (const d of bp.parts) {
     const o = part(d.key, d.name ?? '');
+    if (d.lo) o.userData.rbLod = d.lo;
     if (d.pos) o.position.set(d.pos[0], d.pos[1], d.pos[2]);
     g.add(o);
     if (d.liquid) {
@@ -1337,7 +1356,7 @@ export function containerModel(p) {
 }
 
 function stickGeo(color, r = 0.0135, m = 0.85) {
-  const g = K.cyl(r, r, 1, 12);
+  const g = K.cyl(r, r, 1, S(12));
   return K.paint(g, color, { r: 0.3, m });
 }
 
@@ -1347,7 +1366,7 @@ function tufts(rows, cols, w, d, h, r, color, { flare = 1.15, rough = 0.85, jitt
     const x = -w / 2 + (w * (i + 0.5)) / cols + (j % 2 ? w / cols / 2 : 0) - w / cols / 4;
     const z = -d / 2 + (d * (j + 0.5)) / rows;
     const hh = h * (1 + (K.hash(i, j, 4) - 0.5) * jitter);
-    const t = K.cyl(r, r * flare, hh, 7, { x, y: hh / 2, z });
+    const t = K.cyl(r, r * flare, hh, S(7), { x, y: hh / 2, z });
     list.push(K.paint(t, color, { r: rough, shade: (px, py) => 0.78 + 0.22 * Math.min(1, py / h) }));
   }
   return K.merge(list);
@@ -1355,18 +1374,18 @@ function tufts(rows, cols, w, d, h, r, color, { flare = 1.15, rough = 0.85, jitt
 
 function gripBlack() {
   const key = 't:grip:black';
-  if (!has(key)) {
-    const grip = K.cyl(0.018, 0.018, 0.14, 16, { y: -0.08 });
-    const end = K.cyl(0.02, 0.018, 0.012, 16, { y: -0.004 });
-    define(key, 'opaque', K.merge([K.paint(grip, '#1d1e20', { r: 0.8 }), K.paint(end, '#1d1e20', { r: 0.6 })]));
+  if (!has(key + SUFFIX)) {
+    const grip = K.cyl(0.018, 0.018, 0.14, S(16), { y: -0.08 });
+    const end = K.cyl(0.02, 0.018, 0.012, S(16), { y: -0.004 });
+    def(key, 'opaque', K.merge([K.paint(grip, '#1d1e20', { r: 0.8 }), K.paint(end, '#1d1e20', { r: 0.6 })]));
   }
-  return key;
+  return key + SUFFIX;
 }
 
 function aluStick() {
   const key = 't:stick:alu';
-  if (!has(key)) define(key, 'opaque', stickGeo('#b6bcc2', 0.0135, 0.85));
-  return key;
+  if (!has(key + SUFFIX)) def(key, 'opaque', stickGeo('#b6bcc2', 0.0135, 0.85));
+  return key + SUFFIX;
 }
 
 function dHandle(len, hgt, thick, w) {
@@ -1378,7 +1397,7 @@ function dHandle(len, hgt, thick, w) {
     [a * 0.95, hgt, a * 0.55, hgt],
     [-a * 0.55, hgt],
     [-a * 0.95, hgt, -a, hgt * 0.35],
-  ], w, { bevel: thick * 0.35, bevelSegs: 3, curveSegs: 10, holes: [[
+  ], w, { bevel: thick * 0.35, bevelSegs: S(3, 1), curveSegs: S(10, 2), holes: [[
     [-a * 0.62, hgt * 0.22],
     [a * 0.62, hgt * 0.22],
     [a * 0.66, hgt * 0.62, a * 0.42, hgt * 0.64],
@@ -1387,38 +1406,55 @@ function dHandle(len, hgt, thick, w) {
   ]] });
 }
 
-function toolBlueprint(id, def) {
+function toolBlueprint(id, d) {
   const key = 't:' + id;
   if (blueprints.has(key)) return blueprints.get(key);
   ensureAtlas();
-  const k = def.kind;
+  const bp = buildTool(id, d);
+  try {
+    DQ = LO_Q;
+    SUFFIX = '~lo';
+    const lo = buildTool(id, d);
+    bp.headLo = lo.head;
+    bp.extra.forEach((e, i) => { e.lo = lo.extra[i]?.key ?? null; });
+    bp.stickLo = lo.stick;
+  } finally {
+    DQ = 1;
+    SUFFIX = '';
+  }
+  blueprints.set(key, bp);
+  return bp;
+}
+
+function buildTool(id, td) {
+  const k = td.kind;
   const head = [], extra = [];
   let shape, tip = [0, 0, 0], handleLen = 0, stick = null, lens = null;
-  if (k === 'vacuum' && !def.wet) {
+  if (k === 'vacuum' && !td.wet) {
     const body = '#c8352b', dark = '#2a2c30', grey = '#5b6066';
-    const housing = K.roundedBox(0.34, 0.055, 0.2, 0.022, 3);
+    const housing = K.roundedBox(0.34, 0.055, 0.2, 0.022, S(3, 1));
     housing.translate(0, -0.008, -0.045);
-    const hood = K.roundedBox(0.26, 0.03, 0.11, 0.012, 2);
+    const hood = K.roundedBox(0.26, 0.03, 0.11, 0.012, S(2, 1));
     hood.translate(0, 0.024, -0.065);
-    const bumper = K.roundedBox(0.35, 0.026, 0.022, 0.009, 2);
+    const bumper = K.roundedBox(0.35, 0.026, 0.022, 0.009, S(2, 1));
     bumper.translate(0, -0.022, -0.143);
-    const light = K.roundedBox(0.14, 0.008, 0.004, 0.002, 1);
+    const light = K.roundedBox(0.14, 0.008, 0.004, 0.002, S(1, 1));
     light.translate(0, 0.004, -0.146);
-    const neck = K.cyl(0.03, 0.034, 0.05, 20, { y: 0.03, z: 0.0 });
-    const knuckle = new THREE.SphereGeometry(0.033, 18, 12);
+    const neck = K.cyl(0.03, 0.034, 0.05, S(20), { y: 0.03, z: 0.0 });
+    const knuckle = new THREE.SphereGeometry(0.033, S(18), S(12));
     knuckle.translate(0, 0.055, 0.0);
     const wheels = [];
     for (const s of [-1, 1]) {
-      const w = K.cyl(0.036, 0.036, 0.024, 20);
+      const w = K.cyl(0.036, 0.036, 0.024, S(20));
       w.rotateZ(Math.PI / 2);
       w.translate(s * 0.158, -0.004, 0.03);
       wheels.push(K.paint(w, '#1a1b1d', { r: 0.7 }));
-      const hub = K.cyl(0.016, 0.016, 0.026, 14);
+      const hub = K.cyl(0.016, 0.016, 0.026, S(14));
       hub.rotateZ(Math.PI / 2);
       hub.translate(s * 0.159, -0.004, 0.03);
       wheels.push(K.paint(hub, '#9aa1a6', { r: 0.3, m: 0.8 }));
     }
-    head.push(define('t:vac:head', 'opaque', K.merge([
+    head.push(def('t:vac:head', 'opaque', K.merge([
       K.paint(housing, dark, { r: 0.45 }),
       K.paint(hood, body, { r: 0.3 }),
       K.paint(bumper, '#151617', { r: 0.8 }),
@@ -1427,18 +1463,18 @@ function toolBlueprint(id, def) {
       K.paint(knuckle, dark, { r: 0.4 }),
       ...wheels,
     ])));
-    const motor = K.roundedBox(0.17, 0.2, 0.12, 0.03, 3);
+    const motor = K.roundedBox(0.17, 0.2, 0.12, 0.03, S(3, 1));
     motor.translate(0, 0.1, 0.012);
     const binR = 0.048;
-    const bin = K.cyl(binR, binR, 0.2, 28, { y: 0.22, z: -0.045 });
-    const binCap = K.cyl(binR + 0.003, binR + 0.003, 0.025, 28, { y: 0.335, z: -0.045 });
-    const dust = K.cyl(binR - 0.004, binR - 0.004, 0.05, 24, { y: 0.145, z: -0.045 });
-    const cyc = K.cyl(0.02, 0.026, 0.12, 20, { y: 0.26, z: -0.045 });
+    const bin = K.cyl(binR, binR, 0.2, S(28), { y: 0.22, z: -0.045 });
+    const binCap = K.cyl(binR + 0.003, binR + 0.003, 0.025, S(28), { y: 0.335, z: -0.045 });
+    const dust = K.cyl(binR - 0.004, binR - 0.004, 0.05, S(24), { y: 0.145, z: -0.045 });
+    const cyc = K.cyl(0.02, 0.026, 0.12, S(20), { y: 0.26, z: -0.045 });
     const badge = new THREE.PlaneGeometry(0.11, 0.055);
     badge.translate(0, 0.11, 0.0725);
-    const hook = K.roundedBox(0.05, 0.016, 0.03, 0.006, 1);
+    const hook = K.roundedBox(0.05, 0.016, 0.03, 0.006, S(1, 1));
     hook.translate(0, 0.24, 0.07);
-    extra.push({ key: define('t:vac:body', 'opaque', K.merge([
+    extra.push({ key: def('t:vac:body', 'opaque', K.merge([
       K.paint(motor, body, { r: 0.32 }),
       K.paint(binCap, '#2a2c30', { r: 0.4 }),
       K.paint(dust, '#8a8178', { r: 0.95 }),
@@ -1446,35 +1482,35 @@ function toolBlueprint(id, def) {
       K.paint(badge, '#ffffff', { r: 0.4, uvRect: toolRect(0) }),
       K.paint(hook, '#2a2c30', { r: 0.5 }),
     ])), at: 'base', offset: 0.03 });
-    extra.push({ key: define('t:vac:bin', 'clear', K.paint(bin, '#dfe8ee', { r: 0.06, a: 0.2 })), at: 'base', offset: 0.03 });
-    const grip = K.cyl(0.019, 0.019, 0.12, 18, { y: -0.08 });
-    const loop = new THREE.TorusGeometry(0.05, 0.012, 10, 28, Math.PI);
+    extra.push({ key: def('t:vac:bin', 'clear', K.paint(bin, '#dfe8ee', { r: 0.06, a: 0.2 })), at: 'base', offset: 0.03 });
+    const grip = K.cyl(0.019, 0.019, 0.12, S(18), { y: -0.08 });
+    const loop = new THREE.TorusGeometry(0.05, 0.012, S(10, 4), S(28), Math.PI);
     loop.translate(0, -0.005, 0);
-    const sw = K.roundedBox(0.018, 0.01, 0.016, 0.004, 1);
+    const sw = K.roundedBox(0.018, 0.01, 0.016, 0.004, S(1, 1));
     sw.translate(0, -0.03, -0.018);
-    extra.push({ key: define('t:vac:grip', 'opaque', K.merge([K.paint(grip, '#1d1e20', { r: 0.75 }), K.paint(loop, '#2a2c30', { r: 0.45 }), K.paint(sw, body, { r: 0.35 })])), at: 'top', offset: 0.0 });
+    extra.push({ key: def('t:vac:grip', 'opaque', K.merge([K.paint(grip, '#1d1e20', { r: 0.75 }), K.paint(loop, '#2a2c30', { r: 0.45 }), K.paint(sw, body, { r: 0.35 })])), at: 'top', offset: 0.0 });
     stick = aluStick();
     handleLen = 1.05;
     shape = { type: 'box', x: 0.18, y: 0.04, z: 0.12, cy: 0 };
   } else if (k === 'vacuum') {
     const body = '#1c5fb4', dark = '#24262a';
-    const nozzleG = K.roundedBox(0.34, 0.035, 0.11, 0.014, 3);
+    const nozzleG = K.roundedBox(0.34, 0.035, 0.11, 0.014, S(3, 1));
     nozzleG.translate(0, -0.016, -0.02);
     const lipF = K.box(0.33, 0.012, 0.005, { y: -0.036, z: -0.072 });
     const lipB = K.box(0.33, 0.012, 0.005, { y: -0.036, z: 0.03 });
-    const window = K.roundedBox(0.24, 0.012, 0.05, 0.005, 1);
+    const window = K.roundedBox(0.24, 0.012, 0.05, 0.005, S(1, 1));
     window.translate(0, 0.004, -0.03);
-    const neck = K.cyl(0.026, 0.03, 0.05, 18, { y: 0.02, z: 0.0 });
-    const knuckle = new THREE.SphereGeometry(0.03, 16, 10);
+    const neck = K.cyl(0.026, 0.03, 0.05, S(18), { y: 0.02, z: 0.0 });
+    const knuckle = new THREE.SphereGeometry(0.03, S(16), S(10));
     knuckle.translate(0, 0.05, 0.0);
     const wheels = [];
     for (const s of [-1, 1]) {
-      const w = K.cyl(0.026, 0.026, 0.018, 18);
+      const w = K.cyl(0.026, 0.026, 0.018, S(18));
       w.rotateZ(Math.PI / 2);
       w.translate(s * 0.15, -0.012, 0.035);
       wheels.push(K.paint(w, '#141516', { r: 0.7 }));
     }
-    head.push(define('t:wet:head', 'opaque', K.merge([
+    head.push(def('t:wet:head', 'opaque', K.merge([
       K.paint(nozzleG, body, { r: 0.35 }),
       K.paint(lipF, '#101112', { r: 0.85 }),
       K.paint(lipB, '#101112', { r: 0.85 }),
@@ -1483,15 +1519,15 @@ function toolBlueprint(id, def) {
       K.paint(knuckle, dark, { r: 0.4 }),
       ...wheels,
     ])));
-    const base = K.roundedBox(0.19, 0.05, 0.14, 0.03, 3);
+    const base = K.roundedBox(0.19, 0.05, 0.14, 0.03, S(3, 1));
     base.translate(0, 0.02, 0);
-    const motor = K.roundedBox(0.17, 0.08, 0.12, 0.03, 3);
+    const motor = K.roundedBox(0.17, 0.08, 0.12, 0.03, S(3, 1));
     motor.translate(0, 0.34, 0.0);
-    const spine = K.roundedBox(0.05, 0.3, 0.04, 0.012, 2);
+    const spine = K.roundedBox(0.05, 0.3, 0.04, 0.012, S(2, 1));
     spine.translate(0, 0.19, 0.065);
     const badge = new THREE.PlaneGeometry(0.12, 0.06);
     badge.translate(0, 0.34, 0.0605);
-    extra.push({ key: define('t:wet:body', 'opaque', K.merge([
+    extra.push({ key: def('t:wet:body', 'opaque', K.merge([
       K.paint(base, dark, { r: 0.45 }),
       K.paint(motor, body, { r: 0.3 }),
       K.paint(spine, dark, { r: 0.45 }),
@@ -1500,52 +1536,51 @@ function toolBlueprint(id, def) {
     const tank = K.loft([
       { y: 0.045, hw: 0.08, hd: 0.052, cr: 0.03 },
       { y: 0.3, hw: 0.08, hd: 0.052, cr: 0.03 },
-    ], { segs: 40 });
+    ], { segs: S(40) });
     tank.translate(0, 0, -0.01);
-    extra.push({ key: define('t:wet:tank', 'clear', K.paint(tank, '#dce8f0', { r: 0.06, a: 0.22 })), at: 'base', offset: 0.03 });
+    extra.push({ key: def('t:wet:tank', 'clear', K.paint(tank, '#dce8f0', { r: 0.06, a: 0.22 })), at: 'base', offset: 0.03 });
     const water = K.loft([
       { y: 0.048, hw: 0.077, hd: 0.049, cr: 0.028 },
       { y: 0.296, hw: 0.077, hd: 0.049, cr: 0.028 },
-    ], { segs: 32 });
+    ], { segs: S(32) });
     water.translate(0, 0, -0.01);
-    extra.push({ key: define('t:wet:water', 'liquid', K.paint(water, '#6b5a3e', { r: 0.08, a: 0.88, liquid: true })), at: 'base', offset: 0.03, fill: [0.048, 0.296] });
-    const grip = K.cyl(0.019, 0.019, 0.12, 18, { y: -0.08 });
-    const tee = K.cyl(0.016, 0.016, 0.13, 16);
+    extra.push({ key: def('t:wet:water', 'liquid', K.paint(water, '#6b5a3e', { r: 0.08, a: 0.88, liquid: true })), at: 'base', offset: 0.03, fill: [0.048, 0.296] });
+    const grip = K.cyl(0.019, 0.019, 0.12, S(18), { y: -0.08 });
+    const tee = K.cyl(0.016, 0.016, 0.13, S(16));
     tee.rotateZ(Math.PI / 2);
     tee.translate(0, -0.005, 0);
-    extra.push({ key: define('t:wet:grip', 'opaque', K.merge([K.paint(grip, '#1d1e20', { r: 0.75 }), K.paint(tee, '#1d1e20', { r: 0.7 })])), at: 'top', offset: 0.0 });
-    stick = 't:stick:dark';
-    define(stick, 'opaque', stickGeo('#3b3f44', 0.0135, 0.3));
+    extra.push({ key: def('t:wet:grip', 'opaque', K.merge([K.paint(grip, '#1d1e20', { r: 0.75 }), K.paint(tee, '#1d1e20', { r: 0.7 })])), at: 'top', offset: 0.0 });
+    stick = def('t:stick:dark', 'opaque', stickGeo('#3b3f44', 0.0135, 0.3));
     handleLen = 1.05;
     shape = { type: 'box', x: 0.18, y: 0.04, z: 0.12, cy: 0 };
-  } else if (k === 'brush' && def.rake) {
-    const bar = K.roundedBox(0.42, 0.022, 0.04, 0.008, 2);
+  } else if (k === 'brush' && td.rake) {
+    const bar = K.roundedBox(0.42, 0.022, 0.04, 0.008, S(2, 1));
     bar.translate(0, 0.064, 0);
     const pins = [];
     for (let row = 0; row < 2; row++) for (let i = 0; i < 30; i++) {
       const x = -0.2 + i * 0.0138 + (row ? 0.0069 : 0);
-      const pin = K.cyl(0.0016, 0.0019, 0.056, 6, { x, y: 0.028, z: row ? 0.009 : -0.009 });
+      const pin = K.cyl(0.0016, 0.0019, 0.056, S(6), { x, y: 0.028, z: row ? 0.009 : -0.009 });
       pins.push(K.paint(pin, '#c3c8cc', { r: 0.25, m: 0.9 }));
     }
-    const socket = K.cyl(0.017, 0.021, 0.05, 18);
+    const socket = K.cyl(0.017, 0.021, 0.05, S(18));
     socket.rotateX(-0.35);
     socket.translate(0, 0.09, 0.008);
     const caps = [];
     for (const s of [-1, 1]) {
-      const c = K.roundedBox(0.012, 0.03, 0.044, 0.005, 1);
+      const c = K.roundedBox(0.012, 0.03, 0.044, 0.005, S(1, 1));
       c.translate(s * 0.212, 0.064, 0);
       caps.push(K.paint(c, '#1b1c1e', { r: 0.6 }));
     }
-    head.push(define('t:rake:head', 'opaque', K.merge([K.paint(bar, '#2e7d4f', { r: 0.4 }), K.paint(socket, '#1b1c1e', { r: 0.5 }), ...pins, ...caps])));
+    head.push(def('t:rake:head', 'opaque', K.merge([K.paint(bar, '#2e7d4f', { r: 0.4 }), K.paint(socket, '#1b1c1e', { r: 0.5 }), ...pins, ...caps])));
     extra.push({ key: gripBlack(), at: 'top', offset: 0 });
     stick = aluStick();
     handleLen = 1.3;
     shape = { type: 'box', x: 0.21, y: 0.04, z: 0.03, cy: 0.04 };
   } else if (k === 'brush') {
-    const rubber = !!def.rubber, stiff = !rubber && def.strength > 0.8;
+    const rubber = !!td.rubber, stiff = !rubber && td.strength > 0.8;
     const blockCol = rubber ? '#d8432a' : stiff ? '#1f5fae' : '#c99a63';
     const blkR = rubber ? 0.55 : stiff ? 0.35 : 0.55;
-    const block = K.roundedBox(0.2, 0.026, 0.078, 0.008, 2);
+    const block = K.roundedBox(0.2, 0.026, 0.078, 0.008, S(2, 1));
     block.translate(0, 0.043, 0);
     const handle = dHandle(0.15, 0.04, 0.012, 0.024);
     handle.translate(0, 0.055, 0);
@@ -1553,29 +1588,29 @@ function toolBlueprint(id, def) {
     if (rubber) {
       for (let j = 0; j < 4; j++) for (let i = 0; i < 12; i++) {
         const x = -0.088 + i * 0.016 + (j % 2 ? 0.008 : 0), z = -0.027 + j * 0.018;
-        const nub = K.cyl(0.0025, 0.0055, 0.03, 8, { x, y: 0.015, z });
+        const nub = K.cyl(0.0025, 0.0055, 0.03, S(8), { x, y: 0.015, z });
         parts.push(K.paint(nub, '#c53a24', { r: 0.7 }));
       }
     } else {
       parts.push(tufts(4, 13, 0.19, 0.07, 0.031, stiff ? 0.0033 : 0.0042, stiff ? '#f2c94c' : '#3a2a1c', { flare: stiff ? 1.05 : 1.25, rough: 0.7, jitter: stiff ? 0.04 : 0.12 }));
     }
-    head.push(define(`t:${id}:head`, 'opaque', K.merge(parts)));
+    head.push(def(`t:${id}:head`, 'opaque', K.merge(parts)));
     shape = { type: 'box', x: 0.1, y: 0.045, z: 0.04, cy: 0.045 };
   } else if (k === 'squeegee') {
-    const frame = K.roundedBox(0.56, 0.026, 0.03, 0.006, 2);
+    const frame = K.roundedBox(0.56, 0.026, 0.03, 0.006, S(2, 1));
     frame.translate(0, 0.052, 0);
     const bladeA = K.box(0.55, 0.045, 0.005, { y: 0.0225, z: -0.006 });
     const bladeB = K.box(0.55, 0.045, 0.005, { y: 0.0225, z: 0.006 });
-    const socket = K.cyl(0.018, 0.022, 0.05, 18);
+    const socket = K.cyl(0.018, 0.022, 0.05, S(18));
     socket.rotateX(-0.4);
     socket.translate(0, 0.075, 0.01);
     const caps = [];
     for (const s of [-1, 1]) {
-      const c = K.roundedBox(0.014, 0.036, 0.036, 0.006, 1);
+      const c = K.roundedBox(0.014, 0.036, 0.036, 0.006, S(1, 1));
       c.translate(s * 0.283, 0.05, 0);
       caps.push(K.paint(c, '#1b1c1e', { r: 0.6 }));
     }
-    head.push(define('t:squeegee:head', 'opaque', K.merge([K.paint(frame, '#f2c230', { r: 0.35 }), K.paint(bladeA, '#141414', { r: 0.85 }), K.paint(bladeB, '#141414', { r: 0.85 }), K.paint(socket, '#f2c230', { r: 0.35 }), ...caps])));
+    head.push(def('t:squeegee:head', 'opaque', K.merge([K.paint(frame, '#f2c230', { r: 0.35 }), K.paint(bladeA, '#141414', { r: 0.85 }), K.paint(bladeB, '#141414', { r: 0.85 }), K.paint(socket, '#f2c230', { r: 0.35 }), ...caps])));
     extra.push({ key: gripBlack(), at: 'top', offset: 0 });
     stick = aluStick();
     handleLen = 1.3;
@@ -1590,7 +1625,7 @@ function toolBlueprint(id, def) {
       [0.0, 0.13, -0.013, 0.12],
       [-0.018, 0.03],
       [-0.026, -0.04],
-    ], 0.004, { bevel: 0.0015, bevelSegs: 2, curveSegs: 6 });
+    ], 0.004, { bevel: 0.0015, bevelSegs: S(2, 1), curveSegs: S(6, 2) });
     blade.rotateX(Math.PI / 2);
     K.bend(blade, (v) => {
       if (v.z > 0.02) v.y += (v.z - 0.02) * (v.z - 0.02) * 1.6;
@@ -1598,13 +1633,13 @@ function toolBlueprint(id, def) {
       v.y *= 1 - t * 0.5;
     });
     blade.translate(0, -0.004, 0);
-    head.push(define('t:scraper:head', 'opaque', K.paint(blade, '#efe6d2', { r: 0.32, shade: (x, y, z) => 0.94 + 0.06 * Math.sin(z * 90) })));
+    head.push(def('t:scraper:head', 'opaque', K.paint(blade, '#efe6d2', { r: 0.32, shade: (x, y, z) => 0.94 + 0.06 * Math.sin(z * 90) })));
     shape = { type: 'box', x: 0.03, y: 0.015, z: 0.1, cy: 0.012 };
   } else if (k === 'iron') {
-    const paperG = new THREE.PlaneGeometry(0.3, 0.24, 18, 14);
+    const paperG = new THREE.PlaneGeometry(0.3, 0.24, S(18), S(14));
     paperG.rotateX(-Math.PI / 2);
     K.bend(paperG, (v) => {
-      v.y = 0.0012 + Math.max(0, Math.sin(v.x * 37 + v.z * 11) * 0.0012 + Math.sin(v.z * 53 - v.x * 7) * 0.0009) * (Math.abs(v.x) > 0.07 || Math.abs(v.z) > 0.12 ? 1 : 0.15);
+      v.y = 0.003 + Math.max(0, Math.sin(v.x * 37 + v.z * 11) * 0.0015 + Math.sin(v.z * 53 - v.x * 7) * 0.001) * (Math.abs(v.x) > 0.07 || Math.abs(v.z) > 0.12 ? 1 : 0.1);
     });
     const kr = kraftRect();
     const outline = [
@@ -1614,26 +1649,26 @@ function toolBlueprint(id, def) {
       [-0.052, -0.06, -0.0, -0.125],
       [0.052, -0.06, 0.058, 0.02],
     ];
-    const sole = K.extrude(outline, 0.008, { bevel: 0.0015, bevelSegs: 1, curveSegs: 12 });
+    const sole = K.extrude(outline, 0.008, { bevel: 0.0015, bevelSegs: S(1, 1), curveSegs: S(12, 2) });
     sole.rotateX(Math.PI / 2);
     sole.translate(0, 0.0065, 0);
-    const bodyG = K.extrude(outline.map((q) => q.map((v, i) => (i % 2 === 0 ? v * 0.93 : v * 0.95))), 0.034, { bevel: 0.012, bevelSegs: 4, curveSegs: 14 });
+    const bodyG = K.extrude(outline.map((q) => q.map((v, i) => (i % 2 === 0 ? v * 0.93 : v * 0.95))), 0.034, { bevel: 0.012, bevelSegs: S(4, 1), curveSegs: S(14, 2) });
     bodyG.rotateX(Math.PI / 2);
     bodyG.translate(0, 0.03, 0.004);
-    const handle = K.tube([[0, 0.05, 0.085], [0, 0.098, 0.055], [0, 0.104, -0.01], [0, 0.07, -0.07]], 0.0115, { segs: 24, radial: 12 });
-    const post = K.roundedBox(0.026, 0.05, 0.02, 0.008, 2);
+    const handle = K.tube([[0, 0.05, 0.085], [0, 0.098, 0.055], [0, 0.104, -0.01], [0, 0.07, -0.07]], 0.0115, { segs: S(24), radial: S(12, 4) });
+    const post = K.roundedBox(0.026, 0.05, 0.02, 0.008, S(2, 1));
     post.translate(0, 0.075, 0.075);
-    const dial = K.cyl(0.016, 0.017, 0.008, 24);
+    const dial = K.cyl(0.016, 0.017, 0.008, S(24));
     dial.rotateX(-0.6);
     dial.translate(0, 0.06, 0.06);
-    const steamBtn = K.cyl(0.006, 0.006, 0.006, 12, { y: 0.106, z: -0.02 });
-    const tank = K.roundedBox(0.05, 0.022, 0.05, 0.01, 2);
+    const steamBtn = K.cyl(0.006, 0.006, 0.006, S(12), { y: 0.106, z: -0.02 });
+    const tank = K.roundedBox(0.05, 0.022, 0.05, 0.01, S(2, 1));
     tank.translate(0, 0.052, -0.055);
-    const cord = K.tube([[0, 0.05, 0.1], [0, 0.04, 0.13], [0.02, 0.012, 0.16]], 0.004, { segs: 10, radial: 8 });
+    const cord = K.tube([[0, 0.05, 0.1], [0, 0.04, 0.13], [0.02, 0.012, 0.16]], 0.004, { segs: S(10), radial: S(8, 4) });
     const badge = new THREE.PlaneGeometry(0.06, 0.03);
     badge.rotateY(Math.PI / 2);
     badge.translate(0.0545, 0.032, 0.02);
-    head.push(define('t:iron:head', 'opaque', K.merge([
+    head.push(def('t:iron:head', 'opaque', K.merge([
       K.paint(paperG, '#ffffff', { r: 0.92, uvFn: (x, y, z) => [kr[0] + (x / 0.3 + 0.5) * kr[2], kr[1] + (z / 0.24 + 0.5) * kr[3]] }),
       K.paint(sole, '#c9ced2', { r: 0.12, m: 0.95 }),
       K.paint(bodyG, '#f4f6f8', { r: 0.28, shade: (x, y) => (y < 0.022 ? 0.72 : 1) }),
@@ -1648,23 +1683,23 @@ function toolBlueprint(id, def) {
     shape = { type: 'box', x: 0.07, y: 0.05, z: 0.12, cy: 0.05 };
   } else if (k === 'uvlamp') {
     const bodyP = [[0.0, 0.086], [0.0185, 0.0855], [0.0195, 0.082], [0.0195, 0.066], [0.0178, 0.062], [0.0178, -0.03], [0.0215, -0.045], [0.026, -0.068], [0.0262, -0.083], [0.024, -0.086]];
-    const body = K.lathe(bodyP.map(([r, y]) => [Math.max(r, 0.0005), -y]), { segs: 36 });
+    const body = K.lathe(bodyP.map(([r, y]) => [Math.max(r, 0.0005), -y]), { segs: S(36) });
     body.rotateX(-Math.PI / 2);
-    const knurl = K.ribbedRing(0.0182, 0.07, 24, 0.0009, 0);
+    const knurl = K.ribbedRing(0.0182, 0.07, S(24, 10), 0.0009, 0);
     knurl.rotateX(Math.PI / 2);
     knurl.translate(0, 0, 0.022);
-    const clip = K.roundedBox(0.006, 0.0025, 0.055, 0.001, 1);
+    const clip = K.roundedBox(0.006, 0.0025, 0.055, 0.001, S(1, 1));
     clip.translate(0, 0.0205, 0.045);
-    const button = K.cyl(0.009, 0.01, 0.006, 18);
+    const button = K.cyl(0.009, 0.01, 0.006, S(18));
     button.rotateX(Math.PI / 2);
     button.translate(0, 0, 0.088);
-    const reflector = K.lathe([[0.0235, 0.084], [0.012, 0.072], [0.006, 0.07]], { segs: 32 });
+    const reflector = K.lathe([[0.0235, 0.084], [0.012, 0.072], [0.006, 0.07]], { segs: S(32) });
     reflector.rotateX(-Math.PI / 2);
-    const band2 = new THREE.CylinderGeometry(0.01784, 0.01784, 0.016, 36, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
+    const band2 = new THREE.CylinderGeometry(0.01784, 0.01784, 0.016, S(36), 1, true, -Math.PI * 0.45, Math.PI * 0.9);
     band2.rotateX(Math.PI / 2);
     band2.rotateZ(Math.PI);
     band2.translate(0, 0, -0.022);
-    head.push(define('t:uv:head', 'opaque', K.merge([
+    head.push(def('t:uv:head', 'opaque', K.merge([
       K.paint(body, '#2d2a33', { r: 0.32, m: 0.75 }),
       K.paint(knurl, '#26232b', { r: 0.45, m: 0.7 }),
       K.paint(clip, '#c5cacf', { r: 0.25, m: 0.95 }),
@@ -1686,17 +1721,17 @@ function toolBlueprint(id, def) {
       [0.215, 0.33, 0.215, 0.24],
       [0.27, 0.215],
     ];
-    const shellG = K.extrude(prof, 0.3, { bevel: 0.022, bevelSegs: 4, curveSegs: 16 });
+    const shellG = K.extrude(prof, 0.3, { bevel: 0.022, bevelSegs: S(4, 1), curveSegs: S(16, 2) });
     shellG.rotateY(Math.PI / 2);
     const grilleR = 0.135;
     const gr = decalRect(0, 0, 256, 256);
     const grilles = [];
     for (const s of [-1, 1]) {
-      const c = new THREE.CircleGeometry(grilleR, 40);
+      const c = new THREE.CircleGeometry(grilleR, S(40));
       c.rotateY(s * Math.PI / 2);
       c.translate(s * 0.1506, 0.29, 0.02);
       grilles.push(K.paint(c, '#ffffff', { r: 0.6, uvFn: (x, y, z) => [gr[0] + ((s > 0 ? -1 : 1) * (z - 0.02) / (2 * grilleR) + 0.5) * gr[2], gr[1] + ((y - 0.29) / (2 * grilleR) + 0.5) * gr[3]] }));
-      const ring = new THREE.TorusGeometry(grilleR + 0.004, 0.006, 8, 40);
+      const ring = new THREE.TorusGeometry(grilleR + 0.004, 0.006, S(8, 4), S(40));
       ring.rotateY(Math.PI / 2);
       ring.translate(s * 0.15, 0.29, 0.02);
       grilles.push(K.paint(ring, '#1d1e20', { r: 0.6 }));
@@ -1705,12 +1740,12 @@ function toolBlueprint(id, def) {
     const outlet = new THREE.PlaneGeometry(0.29, 0.15);
     outlet.rotateY(Math.PI);
     outlet.translate(0, 0.125, -0.2925);
-    const handle = K.tube([[0, 0.49, 0.1], [0, 0.585, 0.06], [0, 0.585, -0.06], [0, 0.48, -0.1]], 0.016, { segs: 20, radial: 12 });
+    const handle = K.tube([[0, 0.49, 0.1], [0, 0.585, 0.06], [0, 0.585, -0.06], [0, 0.48, -0.1]], 0.016, { segs: S(20), radial: S(12, 4) });
     const feet = [];
-    for (const [x, z] of [[-0.12, -0.2], [0.12, -0.2], [-0.12, 0.14], [0.12, 0.14]]) feet.push(K.paint(K.cyl(0.025, 0.028, 0.03, 14, { x, y: 0.015, z }), '#151617', { r: 0.8 }));
-    const sw = K.roundedBox(0.05, 0.03, 0.012, 0.005, 1);
+    for (const [x, z] of [[-0.12, -0.2], [0.12, -0.2], [-0.12, 0.14], [0.12, 0.14]]) feet.push(K.paint(K.cyl(0.025, 0.028, 0.03, S(14), { x, y: 0.015, z }), '#151617', { r: 0.8 }));
+    const sw = K.roundedBox(0.05, 0.03, 0.012, 0.005, S(1, 1));
     sw.translate(0.0, 0.43, 0.17);
-    head.push(define('t:blower:head', 'opaque', K.merge([
+    head.push(def('t:blower:head', 'opaque', K.merge([
       K.paint(shellG, '#c8352b', { r: 0.34, shade: (x, y) => 0.86 + 0.14 * Math.min(1, y / 0.4) }),
       ...grilles,
       K.paint(outlet, '#ffffff', { r: 0.6, uvFn: (x, y) => [ol[0] + (-(x) / 0.29 + 0.5) * ol[2], ol[1] + ((y - 0.125) / 0.15 + 0.5) * ol[3]] }),
@@ -1721,15 +1756,13 @@ function toolBlueprint(id, def) {
     tip = [0, 0.12, -0.36];
     shape = { type: 'box', x: 0.155, y: 0.28, z: 0.28, cy: 0.28 };
   }
-  const bp = { head, extra, shape, tip, handleLen, stick, lens };
-  blueprints.set(key, bp);
-  return bp;
+  return { head, extra, shape, tip, handleLen, stick, lens };
 }
 
 let lensMat = null;
 function lensMesh() {
   if (!lensMat) lensMat = new THREE.MeshStandardMaterial({ color: '#3a2470', emissive: '#7a3cff', emissiveIntensity: 0.2, roughness: 0.12, metalness: 0 });
-  const g = new THREE.CylinderGeometry(0.0225, 0.0225, 0.004, 28);
+  const g = new THREE.CylinderGeometry(0.0225, 0.0225, 0.004, S(28));
   g.rotateX(Math.PI / 2);
   const m = new THREE.Mesh(g, lensMat.clone());
   m.position.z = -0.0845;
@@ -1745,14 +1778,20 @@ export function toolModel(def) {
   g.name = 'tool:' + id;
   const head = new THREE.Group();
   g.add(head);
-  for (const key of bp.head) head.add(part(key));
+  bp.head.forEach((key, i) => {
+    const o = part(key);
+    if (bp.headLo?.[i]) o.userData.rbLod = bp.headLo[i];
+    head.add(o);
+  });
   if (bp.lens) head.add(lensMesh());
   let stick = null;
   if (bp.handleLen > 0 && bp.stick) {
     stick = part(bp.stick, 'stick');
+    if (bp.stickLo) stick.userData.rbLod = bp.stickLo;
     g.add(stick);
     for (const e of bp.extra) {
       const f = follower(e.key, stick, e.at, e.offset);
+      if (e.lo) f.userData.rbLod = e.lo;
       if (e.fill) {
         const [y0, y1] = e.fill;
         f.userData.fillFn = (o) => {

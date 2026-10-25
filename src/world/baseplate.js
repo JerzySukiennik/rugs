@@ -154,7 +154,7 @@ export function buildBaseplate(engine, physics) {
   const fill = new THREE.DirectionalLight(0xe9f0f8, 0.55);
   fill.position.set(-14, 9, -10);
   root.add(fill);
-  const sun = new THREE.DirectionalLight(0xfff3e4, 2.5);
+  const sun = new THREE.DirectionalLight(0xfff3e4, 2.25);
   sun.position.set(13, 27, 8);
   sun.target.position.set(0, 0, 0);
   sun.castShadow = true;
@@ -200,7 +200,7 @@ export function buildBaseplate(engine, physics) {
   }
 
   yard(root);
-  const floor = buildFloor(root, LAYOUT.hall, engine.renderer);
+  const floor = buildFloor(root, LAYOUT.hall);
   engine.add({ lateUpdate: () => floor.update(engine.camera) }, 950);
   floor.update(engine.camera);
 

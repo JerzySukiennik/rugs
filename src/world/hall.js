@@ -8,7 +8,7 @@ const H = LAYOUT.hall;
 const EAVE = 7.0;
 const RIDGE = 8.45;
 const WT = 0.12;
-const CHORD_Y = 6.3;
+const CHORD_Y = H.chordY ?? 6.3;
 const FRAME_X = [-20, -13.333, -6.667, 0, 6.667, 13.333, 20];
 const DOOR_H = 4.5;
 const SEC = 0.5;
@@ -321,13 +321,12 @@ export function buildHall(game) {
     orient(g, [side, 0, 0]);
     walls.push(K.paint(g, inner ? C.panelIn : C.bandOut, { r: 0.55, e: inner ? 0.05 : 0, uvFn: (x, y, z, u, v) => [u, v] }));
   }
-  for (const [ax, plane] of [['z', H.minZ], ['z', H.maxZ]]) {
+  for (const plane of [H.minZ, H.maxZ]) {
     const s = Math.sign(plane);
     const cap = K.box(H.maxX - H.minX + WT + 0.16, 0.06, WT + 0.16, { x: 0, y: EAVE + 0.23, z: plane + s * 0.04 });
     steelLow.push(K.paint(cap, C.bandOut, { r: 0.5, m: 0.4 }));
     const gut = K.box(H.maxX - H.minX + 0.4, 0.14, 0.16, { x: 0, y: EAVE + 0.12, z: plane + s * (WT / 2 + 0.08) });
     steelLow.push(K.paint(gut, '#8d949a', { r: 0.4, m: 0.6 }));
-    void ax;
     for (const x of [-19.6, 19.6]) {
       const dp = K.cyl(0.05, 0.05, EAVE, 10, { x, y: EAVE / 2, z: plane + s * (WT / 2 + 0.07) });
       steelLow.push(K.paint(dp, '#8d949a', { r: 0.4, m: 0.6 }));
@@ -646,11 +645,9 @@ export function buildHall(game) {
   steelLowMesh.receiveShadow = true;
   steelLowMesh.name = 'hallSteel';
   const steelHighMesh = new THREE.Mesh(K.merge(steelHigh), steelLowMesh.material);
-  steelHighMesh.receiveShadow = true;
   steelHighMesh.name = 'hallStructure';
   const wallMat = K.vcolorMaterial('rr-hall-walls', { normalMap: panelN, normalScale: new THREE.Vector2(0.6, 0.6) });
   const wallMesh = new THREE.Mesh(K.merge([...walls, ...roofParts]), wallMat);
-  wallMesh.receiveShadow = true;
   wallMesh.name = 'hallWalls';
   const glassMesh = new THREE.Mesh(K.merge(glass), new THREE.MeshStandardMaterial({ color: '#cfe0ee', roughness: 0.05, metalness: 0.2, emissive: '#b9d3ea', emissiveIntensity: 0.55 }));
   glassMesh.name = 'hallGlass';
@@ -660,7 +657,6 @@ export function buildHall(game) {
   };
   glowMesh.name = 'hallGlow';
   const signMesh = new THREE.Mesh(K.merge(signs), K.vcolorMaterial('rr-hall-signs', { map: signTex }));
-  signMesh.receiveShadow = true;
   signMesh.name = 'hallSigns';
   const markMesh = new THREE.Mesh(K.merge(marks), K.vcolorMaterial('rr-hall-marks', { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
   markMesh.receiveShadow = true;
