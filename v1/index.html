@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rug Rush</title>
+<meta name="description" content="Co-op rug cleaning chaos. Unload the trucks, clean the rugs, don't ruin the silk.">
+<style>
+html,body{margin:0;height:100%;background:#15171b;overflow:hidden}
+#app{position:fixed;inset:0}
+#boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font:600 15px -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;letter-spacing:.04em;background:#15171b;z-index:10;transition:opacity .4s}
+#boot.off{opacity:0;pointer-events:none}
+#boot .err{color:#ff8a7a;font-weight:400;max-width:640px;white-space:pre-wrap}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@dimforge/rapier3d-compat":"https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"}}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="boot">LOADING RUG RUSH…</div>
+<script type="module">
+import { createGame } from './src/game.js';
+const boot = document.getElementById('boot');
+try {
+  await createGame({ container: document.getElementById('app') });
+  boot.classList.add('off');
+  setTimeout(() => boot.remove(), 500);
+} catch (e) {
+  console.error(e);
+  boot.innerHTML = `<div class="err">Failed to start: ${e.message}\n${e.stack ?? ''}</div>`;
+}
+</script>
+</body>
+</html>
